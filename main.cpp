@@ -29,8 +29,8 @@
 #define WORLD_MIN_Y (-100)
 #define WORLD_MAX_Z (100)
 #define WORLD_MIN_Z (-100)
-#define radius_to_volume(r) (4.0/3 * (PI) * pow((r),3) )
-#define volume_to_radius(v) ( pow( 3.0/(4* (PI)) * (v), 1.0/3) )
+#define radius_to_volume(r) ( pow((r),3) )
+#define volume_to_radius(v) ( pow( (v), 1.0/3) )
 
 using namespace std;
 using namespace glm;
@@ -444,18 +444,19 @@ void draw(Planet & planet)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,planet.elementBuffer);
     glDrawElements(GL_TRIANGLES, (GLuint)planet.indices.size(), GL_UNSIGNED_SHORT, (void *)0);
 
-    if(!planet.isFixedStar)      // draw orbital
-    {
-        MVP=ProjectionMatrix * ViewMatrix * planet.parent_ModelMatrix;
-        glUniformMatrix4fv(MVPID,1,GL_FALSE,&MVP[0][0]);
-        glUniformMatrix4fv(modelMatrixID,1,GL_FALSE,&planet.parent_ModelMatrix[0][0]);
-
-        glBindBuffer(GL_ARRAY_BUFFER,planet.orbital_vertexBuffer);
-        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
-        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
-
-        glDrawArrays(GL_POINTS,0,(GLuint) planet.orbital_vertices.size());
-    }
+//    // draw orbital
+//    if(!planet.type == CenterStar)
+//    {
+//        MVP=ProjectionMatrix * ViewMatrix * planet.parent_ModelMatrix;
+//        glUniformMatrix4fv(MVPID,1,GL_FALSE,&MVP[0][0]);
+//        glUniformMatrix4fv(modelMatrixID,1,GL_FALSE,&planet.parent_ModelMatrix[0][0]);
+//
+//        glBindBuffer(GL_ARRAY_BUFFER,planet.orbital_vertexBuffer);
+//        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+//        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+//
+//        glDrawArrays(GL_POINTS,0,(GLuint) planet.orbital_vertices.size());
+//    }
 
     glDisableVertexAttribArray(0);   // AttribArray 必须在调用glDrawArrays之后才能关闭
     glDisableVertexAttribArray(2);
@@ -479,37 +480,38 @@ void handle_collision(Planet & p1, Planet & p2)
     if(currentCollisionTIme - lastCollisionTime >= 0.5)
     {
         //todo how to use glm::distance
-//        double  distance = glm::distance( (glm::dvec3) p1.worldLocation, (glm::dvec3) p2.worldLocation);
-        glm::vec3 temp = p1.worldLocation - p2.worldLocation;
+        float  distance = glm::distance( p1.worldLocation,  p2.worldLocation);
+        glm::vec3 temp = p1.get_position() - p2.get_position();
         double distance = temp.length();
-        double wholeVolume = radius_to_volume(smallPlanet.radius) + radius_to_volume(bigPlanet.radius);
-//        double volume = pow(bigPlanet.radius,3) + pow(smallPlanet.radius,3);
+        double bigVolume = radius_to_volume( bigPlanet.get_radius() );   // volume of bigPlanet
+        double smallVolume = radius_to_volume( smallPlanet.get_radius() );  // volume of smallPlanet
+        double wholeVolume = bigVolume + smallVolume;
 
-        if(distance <= max(bigPlanet.radius,smallPlanet.radius))
+        float M1 = pow(bigPlanet.radius, 3);
+        float m1 = pow(smallPlanet.radius, 3);
+
+        if( distance <= max(bigPlanet.radius,smallPlanet.radius))
         {
             cout<<"+++++++++++++++++Merge++++++++++++++"<<endl;
-            bigPlanet.radius = volume_to_radius(wholeVolume);
-            smallPlanet.radius = 0;
+            bigPlanet.set_radius(  volume_to_radius(wholeVolume) );
+            smallPlanet.set_radius( 0 );
             smallPlanet.set_active(false);
         }
         else
         {
             cout<<"-----------Absorption---------------"<<endl;
-//            bigPlanet.radius = sqrt(volume / 3 / distance - pow(distance, 2) / 12) + distance / 2;
-//            smallPlanet.radius = distance - bigPlanet.radius;
-//            bigPlanet.set_radius(sqrt(volume / 3 / distance - pow(distance, 2) / 12) + distance / 2);
-//            smallPlanet.set_radius(distance - bigPlanet.radius);
+            double radiusIntersecLen = bigPlanet.radius + smallPlanet.radius - distance;
+            double deltaVolume = radiusIntersecLen/smallPlanet.radius * smallVolume;
 
-            bigPlanet.set_radius(bigPlanet.radius + 0.01);
-            smallPlanet.set_radius(smallPlanet.radius - 0.01);
+            bigPlanet.set_radius( sqrt( wholeVolume/3/distance - pow(distance,2)/12.0  ) + distance/2  );
+            smallPlanet.set_radius(  distance - bigPlanet.get_radius()  );
+
         }
         //todo set velocity change
-        float M1 = pow(bigPlanet.radius, 3);
-        float m1 = pow(smallPlanet.radius, 3);
+
         glm::vec3 v1 = bigPlanet.velocity;
         glm::vec3 v2 = smallPlanet.velocity;
-        bigPlanet.velocity = ( (M1-m1) * v1 + 2* m1 * v2) / (M1 + m1);
-        smallPlanet.velocity = ( (m1 - M1)*v2 + 2*M1 * v1 )/(M1+m1);
+        bigPlanet.set_velocity( ( M1 * v1 +  m1 * v2) / (M1 + m1) );
         lastCollisionTime = currentCollisionTIme;
 
     }
@@ -545,9 +547,9 @@ int main(int argc, const char * argv[])
 
     string objPath = "./object/ball_hd2.obj";
     string texturePath = "./texture/sun_3000x1500.png";
-    Planet sun = Planet(objPath,texturePath,1.5,true);
+    Planet sun = Planet(objPath,texturePath,1.5,CenterStar);
     texturePath = "./texture/earth_low.png";
-    Planet player = Planet(objPath,texturePath,1,false);
+    Planet player = Planet(objPath,texturePath,1,PlayerStar);
     player.set_position(glm::vec3(10,0,0));
 
 
@@ -575,8 +577,8 @@ int main(int argc, const char * argv[])
             handle_collision(player,sun);
         }
 
-        sun.update();
-        player.update();
+        sun.update_position();
+        player.update_position();
 
         draw(sun);
         draw(player);

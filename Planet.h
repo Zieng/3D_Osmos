@@ -24,6 +24,9 @@
 
 #include <SOIL.h>
 
+#define MAX_RADIUS (10)
+#define MIN_RADIUS (0.1)
+
 using namespace std;
 
 struct PackedVertex
@@ -36,10 +39,23 @@ struct PackedVertex
     };
 };
 
+enum PLANET_TYPE{
+    CenterStar,
+    InvisibleStar,
+    SwallowStar,
+    RepulsiveStar,
+    SwiftStar,
+    NutriStar,
+    DarkStar,
+    ChaosStar,
+    BreatheStar,
+    PlayerStar,
+};
+
 class Planet
 {
 public:
-    Planet(string obj_path, string texture_path, double r, bool is_fixe);
+    Planet(string obj_path, string texture_path, double r, PLANET_TYPE t);
     ~Planet();
 
 //    void set_uniform(GLuint MVPID,
@@ -67,12 +83,11 @@ public:
     void set_velocity(glm::vec3 speed);
     void set_radius(double r);
     void set_orbital(int aa,int bb);
-    void set_fixed(bool b);
     void set_position(glm::vec3 p);
     glm::vec3 get_position();
     void set_position(glm::mat4 new_model_matrix);
-    void update();
-    void update(const glm::mat4 & parentModelMatrix);
+    void update_position();
+    void update_position(const glm::mat4 &parentModelMatrix);
     glm::mat4 get_model_matrix();
     void draw_orbital();
     void print_info();
@@ -81,6 +96,8 @@ public:
     double get_radius();
     void set_active(bool b);
 
+    // planet type
+    PLANET_TYPE  type;
     // object data
     GLuint texture;
 
@@ -99,7 +116,6 @@ public:
     glm::vec3 up;
     glm::vec3 velocity;
     double radius;  // the radius of a planet
-    bool isFixedStar;
     bool destroyed;
     bool isActive;
 

@@ -4,7 +4,7 @@
 
 #include "Planet.h"
 
-Planet::Planet(string obj_path, string texture_path, double r, bool is_fixed)
+Planet::Planet(string obj_path, string texture_path, double r, PLANET_TYPE t)
 {
 //    MVPID = 0;
 //    RenderID = 0;
@@ -12,7 +12,6 @@ Planet::Planet(string obj_path, string texture_path, double r, bool is_fixed)
 //    modelMatrixID = 0;
 //    viewMatrixID = 0;
 //    lightPositionID = 0;
-    isFixedStar = is_fixed;
     self_ModelMatrix = glm::mat4(1.0f);
     velocity = glm::vec3(0,0,0);
     orientation = glm::vec3(0,0,-1);
@@ -21,7 +20,7 @@ Planet::Planet(string obj_path, string texture_path, double r, bool is_fixed)
     lastTime = glfwGetTime();
     destroyed = false;
     isActive = true;
-
+    type = t;
 
     vector<glm::vec3> vertices,normals;
     vector<glm::vec2> uvs;
@@ -277,14 +276,14 @@ void Planet::set_position(glm::mat4 new_model_matrix)
     worldLocation = glm::vec3(temp.x , temp.y , temp.z);
 
 }
-void Planet::update()
+void Planet::update_position()
 {
     glm::mat4 m = glm::mat4(1.0f);
 
-    update(m);
+    update_position(m);
 }
 
-void Planet::update(const glm::mat4 & parentModelMatrix)
+void Planet::update_position(const glm::mat4 &parentModelMatrix)
 {
     parent_ModelMatrix = parentModelMatrix;
     float parentX=0,parentY=0,parentZ=0;
@@ -293,7 +292,7 @@ void Planet::update(const glm::mat4 & parentModelMatrix)
     lastTime = currentTime;
 
 //    cout<<"delta time="<<deltaTime<<endl;
-    if(isFixedStar)  // fixed star no need to update
+    if(type == CenterStar)  // center star no need to update
         return;
 
     worldLocation += 1.f * velocity;
@@ -310,14 +309,9 @@ void Planet::update(const glm::mat4 & parentModelMatrix)
 
 }
 
-void Planet::set_fixed(bool b)
-{
-    isFixedStar = b;
-}
-
 void Planet::set_orbital(int aa, int bb)
 {
-    if(isFixedStar)
+    if(type == CenterStar)
     {
         cout<<"Fixed star no need set orbital!"<<endl;
         return ;
@@ -342,19 +336,21 @@ void Planet::set_orbital(int aa, int bb)
     glBufferData(GL_ARRAY_BUFFER, orbital_vertices.size() * sizeof(glm::vec3), &orbital_vertices[0], GL_STATIC_DRAW);
 
     // calcualte the self model matrix
-    update();
+    update_position();
 }
 
 void Planet::set_radius(double r)
 {
-    if(r == 0)
-    {
-        cout<<"the scale of an object can't be zero"<<endl;
-        return;
-    }
     r = (r < 0) ? -r : r;
 
     radius = r;
+
+    if ( radius < MIN_RADIUS)  // too small , set active = false
+    {
+        isActive = false;
+        return ;
+    }
+
     for(int i=0;i<indexed_vertices.size();i++)
     {
         indexed_vertices[i] *= radius;
@@ -381,7 +377,11 @@ glm::mat4 Planet::get_model_matrix()
 
 void Planet::set_velocity(glm::vec3 speed)
 {
+    if(type == CenterStar)
+        return ;
+
     velocity = speed;
+
 }
 
 bool Planet::check_collison(const Planet & planet)
@@ -419,4 +419,14 @@ void Planet::print_info()
 void Planet::set_active(bool b)
 {
     isActive = b;
+}
+
+double Planet::get_radius()
+{
+    return radius;
+}
+
+glm::vec3 Planet::get_position()
+{
+    return worldLocation;
 }
