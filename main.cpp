@@ -31,6 +31,7 @@
 #define WORLD_MIN_Z (-100)
 #define radius_to_volume(r) ( pow((r),3) )
 #define volume_to_radius(v) ( pow( (v), 1.0/3) )
+#define G_CONST 0.0067f       // universal gravitation const G in our game
 
 using namespace std;
 using namespace glm;
@@ -65,6 +66,8 @@ GLint viewMatrixID;
 GLint lightPositionID;
 
 bool paused = false;
+
+vector<Planet> plist;
 
 GLuint loadShaders(const char * vertex_file_path,const char * fragment_file_path)
 {
@@ -281,8 +284,8 @@ void input_handle(glm::vec3 position, glm::vec3 &direction, glm::vec3 &velocity)
 
 void computeMatricesFromInputs(Planet & player)
 {
-    glm::vec3 & player_position = player.worldLocation;
-    glm::vec3 & velocity = player.velocity;
+    glm::vec3  player_position = player.get_position();
+    glm::vec3  velocity = player.get_velocity();
     glm::vec3 direction;
 
     static double lastTime = glfwGetTime();
@@ -372,7 +375,6 @@ void computeMatricesFromInputs(Planet & player)
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE ) == GLFW_PRESS)
     {
-        glm::vec3 anti_velocity = - velocity;
         if( velocity.length() >= 0.1f )     /// why glm::length(velocity) return glm::vec3????/todo
         {
             velocity *= 0.9;
@@ -408,12 +410,13 @@ void computeMatricesFromInputs(Planet & player)
             up                  // Head is up (set to 0,-1,0 to look upside-down)
     );
 
+    player.set_velocity(velocity);
 }
 
 void draw(Planet & planet)
 {
     if(planet.destroyed || planet.isActive== false)
-        return;
+        return ;
 
     int choose=2;
 
@@ -465,57 +468,155 @@ void draw(Planet & planet)
 
 void handle_collision(Planet & p1, Planet & p2)
 {
-    static double lastCollisionTime = 0;
     double currentCollisionTIme = glfwGetTime();
+    static double lastCollisionTime = currentCollisionTIme;
 
-    Planet & bigPlanet = p1;
-    Planet & smallPlanet = p1;
+    if(p1.isActive== false || p2.isActive== false)
+        return ;
 
-    if(p1.radius >= p2.radius)   // if equal, let P1 be the bigger one
-        smallPlanet = p2;
-    else
-        bigPlanet = p2;
+    bool flag = p1.get_radius()>=p2.get_radius();
+
+    Planet & bigPlanet = flag?p1:p2;
+    Planet & smallPlanet = flag?p2:p1;
 
     //todo handle collision
-    if(currentCollisionTIme - lastCollisionTime >= 0.5)
+    double deltaTime = currentCollisionTIme - lastCollisionTime;
+    cout<<"delataTime = "<<deltaTime<<endl;
+
+    //todo how to use glm::distance
+//        float  distance = glm::distance( p1.worldLocation,  p2.worldLocation);
+    glm::vec3 temp = p1.get_position() - p2.get_position();
+    double distance = sqrt( temp.x*temp.x   +   temp.y*temp.y  +   temp.z*temp.z );
+    double bigVolume = radius_to_volume( bigPlanet.get_radius() );   // volume of bigPlanet
+    double smallVolume = radius_to_volume( smallPlanet.get_radius() );  // volume of smallPlanet
+    double wholeVolume = bigVolume + smallVolume;
+
+
+    cout<<"P1 is at "<<glm::to_string(p1.get_position())<<"\t P2 is at "<<glm::to_string(p2.get_position())<<endl;
+    cout<<"P1 has radius = "<<p1.get_radius()<<"\t P2 has radius = "<<p2.get_radius()<<endl;
+    cout<<"Distance between them are:"<<distance<<endl;
+
+    if( distance < max(bigPlanet.radius,smallPlanet.radius))
     {
-        //todo how to use glm::distance
-        float  distance = glm::distance( p1.worldLocation,  p2.worldLocation);
-        glm::vec3 temp = p1.get_position() - p2.get_position();
-        double distance = temp.length();
-        double bigVolume = radius_to_volume( bigPlanet.get_radius() );   // volume of bigPlanet
-        double smallVolume = radius_to_volume( smallPlanet.get_radius() );  // volume of smallPlanet
-        double wholeVolume = bigVolume + smallVolume;
+        cout<<"+++++++++++++++++Merge++++++++++++++"<<endl;
+        bigPlanet.set_radius(  volume_to_radius(wholeVolume) );
+        smallPlanet.set_radius( 0 );
+        smallPlanet.set_active(false);
+    }
+    else
+    {
+        cout<<"-----------Absorption---------------"<<endl;
 
-        float M1 = pow(bigPlanet.radius, 3);
-        float m1 = pow(smallPlanet.radius, 3);
-
-        if( distance <= max(bigPlanet.radius,smallPlanet.radius))
-        {
-            cout<<"+++++++++++++++++Merge++++++++++++++"<<endl;
-            bigPlanet.set_radius(  volume_to_radius(wholeVolume) );
-            smallPlanet.set_radius( 0 );
-            smallPlanet.set_active(false);
-        }
-        else
-        {
-            cout<<"-----------Absorption---------------"<<endl;
-            double radiusIntersecLen = bigPlanet.radius + smallPlanet.radius - distance;
-            double deltaVolume = radiusIntersecLen/smallPlanet.radius * smallVolume;
-
-            bigPlanet.set_radius( sqrt( wholeVolume/3/distance - pow(distance,2)/12.0  ) + distance/2  );
-            smallPlanet.set_radius(  distance - bigPlanet.get_radius()  );
-
-        }
-        //todo set velocity change
-
-        glm::vec3 v1 = bigPlanet.velocity;
-        glm::vec3 v2 = smallPlanet.velocity;
-        bigPlanet.set_velocity( ( M1 * v1 +  m1 * v2) / (M1 + m1) );
-        lastCollisionTime = currentCollisionTIme;
+        bigPlanet.set_radius( sqrt( wholeVolume/3/distance - pow(distance,2)/12.0  ) + distance/2  );
+        smallPlanet.set_radius(  distance - bigPlanet.get_radius()  );
 
     }
+//    //todo set velocity change
+    float M1 = radius_to_volume(  bigPlanet.get_radius()  );
+    float m1 = radius_to_volume(  smallPlanet.get_radius()  );
 
+    glm::vec3 v1 = bigPlanet.get_velocity();
+    glm::vec3 v2 = smallPlanet.get_velocity();
+    bigPlanet.set_velocity( ( M1 * v1 +  m1 * v2) / (M1 + m1) );
+
+    lastCollisionTime = currentCollisionTIme;
+
+}
+
+void field_effect(Planet & p1, Planet & p2)
+{
+    bool flag = (p1.type == CenterStar) || (p1.type == RepulsiveStar);
+    Planet & source = flag?p1:p2;
+    Planet & target = flag?p2:p1;
+
+
+    if(source.get_active_state()==false || target.get_active_state() ==false)
+    {
+//        cout<<"no need check non-active planet"<<endl;
+        return ;
+    }
+    if(source.type != CenterStar && source.type != RepulsiveStar)
+    {
+//        cout<<"source planet has no filed!"<<endl;
+        return ;
+    }
+
+    if( (source.type == CenterStar && target.type==RepulsiveStar) || (source.type==RepulsiveStar && target.type == CenterStar) )
+    {
+        cout<<"CenterStar field and RepulsiveStar field neutralize!"<<endl;
+        return ;
+    }
+
+    glm::vec3 sourcePos = source.get_position();
+    glm::vec3 targetPos = target.get_position();
+    float sourceM = radius_to_volume( source.get_radius() );
+    float targetM = radius_to_volume( target.get_radius() );
+    glm::vec3 temp = sourcePos - targetPos;
+    float distance = sqrt( temp.x*temp.x   +   temp.y*temp.y  +   temp.z*temp.z );
+    glm::vec3 direction = glm::normalize(sourcePos - targetPos);
+
+    if(source.type == CenterStar)   // attraction
+    {
+        target.set_velocity( target.get_velocity() + (G_CONST*sourceM/ (float)pow(distance,2)) * direction  );
+    }
+    else if(source.type == RepulsiveStar)
+    {
+        target.set_velocity( target.get_velocity() - (G_CONST*sourceM/ (float)pow(distance,2)) * direction  );   // repulsive
+        source.set_velocity( source.get_velocity() +  (G_CONST*targetM/ (float)pow(distance,2)) * direction   );
+    }
+
+}
+
+void inside_world(Planet & planet)
+{
+    glm::vec3 v = planet.get_velocity();
+    glm::vec3 t = planet.get_position();
+    double r = planet.get_radius();
+    float offset = 0.5;   // to avoid planet stuck at the boarder
+    bool changed = false;
+
+    if( t.x < WORLD_MIN_X + r )
+    {
+        t.x = WORLD_MIN_X + r + offset;
+        v.x = -v.x;
+        changed = true;
+    }
+    if( t.y < WORLD_MIN_Y + r)
+    {
+        t.y = WORLD_MIN_Y + r + offset;
+        v.y = -v.y;
+        changed = true;
+    }
+    if( t.z < WORLD_MIN_Z + r)
+    {
+        t.z = WORLD_MIN_Z + r + offset;
+        v.z = -v.z;
+        changed = true;
+    }
+    if( t.x > WORLD_MAX_X - r)
+    {
+        t.x = WORLD_MAX_X - r -offset;
+        v.x = -v.x;
+        changed = true;
+    }
+    if( t.y > WORLD_MAX_Y - r)
+    {
+        t.y = WORLD_MAX_Y - r -offset;
+        v.y = -v.y;
+        changed = true;
+    }
+    if( t.z > WORLD_MAX_Z - r)
+    {
+        t.z = WORLD_MAX_Z - r -offset;
+        v.z = -v.z;
+        changed = true;
+    }
+
+    if(changed)
+    {
+        planet.set_velocity(v);
+        planet.set_position(t);
+    }
 }
 
 int main(int argc, const char * argv[])
@@ -545,21 +646,24 @@ int main(int argc, const char * argv[])
     glBindVertexArray(vertexArray);
 
 
-    string objPath = "./object/ball_hd2.obj";
-    string texturePath = "./texture/sun_3000x1500.png";
-    Planet sun = Planet(objPath,texturePath,1.5,CenterStar);
-    texturePath = "./texture/earth_low.png";
-    Planet player = Planet(objPath,texturePath,1,PlayerStar);
+    Planet player = Planet(1,PlayerStar);
     player.set_position(glm::vec3(10,0,0));
 
+    Planet p1 = Planet(2,CenterStar);
+    plist.push_back(p1);
+
+    for(int i=0;i<1;i++)
+    {
+        Planet temp = Planet(1,NormalStar);
+        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
+        temp.set_position(pos);
+        plist.push_back(temp);
+    }
 
     // For speed computation
     double lastTime = glfwGetTime();
     int nbFrames = 0;
 
-    cout<<"Earth radius = "<<player.radius<<endl;
-    cout<<"sun radius = "<<sun.radius<<endl;
-//    int collisionTimes = 0;
     do
     {
 
@@ -568,20 +672,53 @@ int main(int argc, const char * argv[])
 
         computeMatricesFromInputs(player);
 
-//        cout<<"sun at "<<glm::to_string(sun.worldLocation)<<"\n player at "<<glm::to_string(player.worldLocation)<<endl;
-        //check collision
-        if(player.check_collison(   sun ))
+        //apply field effect
+        for(int i=0;i<plist.size();i++)
         {
-//            cout<<"Collision occured "<<collisionTimes<<" times!"<<endl;
-//            collisionTimes++;
-            handle_collision(player,sun);
+            field_effect(plist[i],player);
+            for(int j=i+1;j<plist.size();j++)
+            {
+                field_effect(plist[i],plist[j]);
+            }
         }
 
-        sun.update_position();
-        player.update_position();
+        /***** check collision***********/
+        // check border
+        inside_world(player);
+        for(int i=0;i<plist.size();i++)
+        {
+            inside_world(plist[i]);
+        }
+        // check between stars
+        for(int i=0;i<plist.size();i++)
+        {
+            if(player.check_collison(plist[i]))
+                handle_collision(player,plist[i]);
+        }
 
-        draw(sun);
+        for(int i=0;i<plist.size()-1;i++)
+        {
+            for(int j=i+1;j<plist.size();j++)
+            {
+                if(plist[i].check_collison(plist[j]))
+                    handle_collision(plist[i],plist[j]);
+            }
+        }
+
+        // update position
+        player.update_position();
+        for(int i=0;i<plist.size();i++)
+        {
+            plist[i].update_position();
+        }
+
+
+        // draw planet
         draw(player);
+        for ( int i=0;i<plist.size();i++)
+        {
+            draw(plist[i]);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -589,8 +726,6 @@ int main(int argc, const char * argv[])
     }while (glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0);
 
     player.print_info();
-    sun.destroy();
-    player.destroy();
     glDeleteProgram(ProgramID);
     glDeleteVertexArrays(1,&vertexArray);
     glfwTerminate();

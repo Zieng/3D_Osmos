@@ -25,7 +25,7 @@
 #include <SOIL.h>
 
 #define MAX_RADIUS (10)
-#define MIN_RADIUS (0.1)
+#define MIN_RADIUS (0)
 
 using namespace std;
 
@@ -40,6 +40,7 @@ struct PackedVertex
 };
 
 enum PLANET_TYPE{
+    NormalStar,
     CenterStar,
     InvisibleStar,
     SwallowStar,
@@ -55,7 +56,7 @@ enum PLANET_TYPE{
 class Planet
 {
 public:
-    Planet(string obj_path, string texture_path, double r, PLANET_TYPE t);
+    Planet(double r,PLANET_TYPE t);
     ~Planet();
 
 //    void set_uniform(GLuint MVPID,
@@ -81,6 +82,7 @@ public:
     GLuint load_texture(const char * image_path);
 
     void set_velocity(glm::vec3 speed);
+    glm::vec3 get_velocity();
     void set_radius(double r);
     void set_orbital(int aa,int bb);
     void set_position(glm::vec3 p);
@@ -95,6 +97,7 @@ public:
     bool check_collison(const Planet & planet);
     double get_radius();
     void set_active(bool b);
+    bool get_active_state();
 
     // planet type
     PLANET_TYPE  type;
@@ -111,7 +114,7 @@ public:
     int a,b;      // a,b for ellipse function
     vector<glm::vec3> orbital_vertices;
 
-    // parameters of the planet
+    // p    arameters of the planet
     glm::vec3 orientation;
     glm::vec3 up;
     glm::vec3 velocity;

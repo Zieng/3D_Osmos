@@ -31,7 +31,7 @@ void main()
 
         // mateiral properties
         vec3 materialDiffuseColor=texture(MyTextureSampler,UV).rgb;
-        vec3 materialAmbientColor=vec3(0.5,0.5,0.5) * materialDiffuseColor;
+        vec3 materialAmbientColor=vec3(0.8,0.8,0.8) * materialDiffuseColor;
         vec3 materialSpecularColor=vec3(0.4,0.3,0.3);
 
         //cosTheta

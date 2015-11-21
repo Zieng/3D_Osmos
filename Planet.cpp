@@ -4,15 +4,53 @@
 
 #include "Planet.h"
 
-Planet::Planet(string obj_path, string texture_path, double r, PLANET_TYPE t)
+
+Planet::Planet(double r, PLANET_TYPE t)
 {
-//    MVPID = 0;
-//    RenderID = 0;
-//    MyTextureSamplerID = 0;
-//    modelMatrixID = 0;
-//    viewMatrixID = 0;
-//    lightPositionID = 0;
+
+    string objPath = "./object/ball_hd2.obj";
+    string texturePath;
+
+    switch (t)
+    {
+        case PlayerStar:
+            texturePath = "./texture/player.png";
+            break;
+        case CenterStar:
+            texturePath = "./texture/sun.png";
+            break;
+        case InvisibleStar:
+            texturePath = "./texture/invisible.png";
+            break;
+        case SwallowStar:
+            texturePath = "./texture/swallow.png";
+            break;
+        case RepulsiveStar:
+            texturePath = "./texture/repulsive.png";
+            break;
+        case SwiftStar:
+            texturePath = "./texture/swift.png";
+            break;
+        case NutriStar:
+            texturePath = "./texture/nutri.png";
+            break;
+        case DarkStar:
+            texturePath = "./texture/dark.png";
+            break;
+        case BreatheStar:
+            texturePath = "./texture/breathe.png";
+            break;
+        case NormalStar:
+            texturePath = "./texture/metal.png";
+            break;
+        default:
+            cout<<endl<<endl<<endl<<endl<<"Undefined!!!!"<<endl<<endl<<endl;
+            texturePath = "./texture/undefined.png";
+            break;
+    }
+
     self_ModelMatrix = glm::mat4(1.0f);
+    worldLocation = glm::vec3(0,0,0);
     velocity = glm::vec3(0,0,0);
     orientation = glm::vec3(0,0,-1);
     up = glm::vec3(0,1,0);
@@ -25,14 +63,14 @@ Planet::Planet(string obj_path, string texture_path, double r, PLANET_TYPE t)
     vector<glm::vec3> vertices,normals;
     vector<glm::vec2> uvs;
 
-    if (load_OBJ(obj_path.c_str(),vertices,uvs,normals) == false)
+    if (load_OBJ(objPath.c_str(), vertices, uvs, normals) == false)
     {
         cout<<"res=false"<<endl;
         return;
     }
 
 
-    texture = load_texture(texture_path.c_str());
+    texture = load_texture(texturePath.c_str());
     if(texture == 0)
     {
         cout<<"load textre failed"<<endl;
@@ -78,6 +116,7 @@ Planet::Planet(string obj_path, string texture_path, double r, PLANET_TYPE t)
     glGenBuffers(1,&elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size() * sizeof(unsigned short), &indices[0],GL_STATIC_DRAW);
+
 }
 
 Planet::~Planet()
@@ -85,17 +124,6 @@ Planet::~Planet()
     if(!destroyed)
         destroy();
 }
-
-//void Planet::set_uniform(GLuint MVPID_, GLuint RenderID_, GLuint MyTextureSamplerID_, GLuint modelMatrixID_,
-//                         GLuint viewMatrixID_, GLuint lightPositionID_)
-//{
-//    MVPID = MVPID_;
-//    RenderID = RenderID_;
-//    MyTextureSamplereID = MyTextureSamplereID_;
-//    modelMatrixID = modelMatrixID_;
-//    viewMatrixID = viewMatrixID_;
-//    lightPositionID = lightPositionID_;
-//}
 
 bool Planet::load_OBJ(const char *objPath, std::vector<glm::vec3> &out_vertex, std::vector<glm::vec2> &out_uv, std::vector<glm::vec3> &out_normal)
 {
@@ -343,7 +371,8 @@ void Planet::set_radius(double r)
 {
     r = (r < 0) ? -r : r;
 
-    radius = r;
+    double old_radius = radius;
+    radius = ( r>MAX_RADIUS )?MAX_RADIUS:r;
 
     if ( radius < MIN_RADIUS)  // too small , set active = false
     {
@@ -353,7 +382,7 @@ void Planet::set_radius(double r)
 
     for(int i=0;i<indexed_vertices.size();i++)
     {
-        indexed_vertices[i] *= radius;
+        indexed_vertices[i] *= (radius / old_radius);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER,vertexBuffer);
@@ -386,6 +415,12 @@ void Planet::set_velocity(glm::vec3 speed)
 
 bool Planet::check_collison(const Planet & planet)
 {
+    if(isActive == false || planet.isActive == false)
+    {
+        cout<<"No need check collision for non-Active star"<<endl;
+        return false;
+    }
+
     const glm::vec3 temp = worldLocation - planet.worldLocation;
 
 //    double distance = glm::distance(temp ,temp);
@@ -394,9 +429,9 @@ bool Planet::check_collison(const Planet & planet)
 //    double distance = pow( temp.x*temp.x   +   temp.y*temp.y  +   temp.z*temp.z, 1.0/2);
     double distance = sqrt( temp.x*temp.x   +   temp.y*temp.y  +   temp.z*temp.z );
 
-    cout<<"current planet has radius="<<radius<<", other planet has radius="<<planet.radius<<endl;
-    cout<<"current planet at "<<glm::to_string(worldLocation)<<", other planet at "<<glm::to_string(planet.worldLocation)<<endl;
-    cout<<"The distance between them are:"<<distance<<endl;
+//    cout<<"current planet has radius="<<radius<<", other planet has radius="<<planet.radius<<endl;
+//    cout<<"current planet at "<<glm::to_string(worldLocation)<<", other planet at "<<glm::to_string(planet.worldLocation)<<endl;
+//    cout<<"The distance between them are:"<<distance<<endl;
     if(planet.radius+radius >= distance)
         return true;
 
@@ -429,4 +464,14 @@ double Planet::get_radius()
 glm::vec3 Planet::get_position()
 {
     return worldLocation;
+}
+
+glm::vec3 Planet::get_velocity()
+{
+    return velocity;
+}
+
+bool Planet::get_active_state()
+{
+    return isActive;
 }
