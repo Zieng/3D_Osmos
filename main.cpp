@@ -682,7 +682,7 @@ int main(int argc, const char * argv[])
 //    printf("address of plist[0]=%p\n",&plist[0]);
 
 
-    for(int i=0;i<5;i++)
+    for(int i=0;i<10;i++)
     {
         Planet * temp ;
         if(i==0)

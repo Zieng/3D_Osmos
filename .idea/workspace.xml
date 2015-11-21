@@ -46,8 +46,8 @@
       <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.7504188">
-              <caret line="740" column="16" selection-start-line="740" selection-start-column="16" selection-end-line="740" selection-end-column="16" />
+            <state vertical-scroll-proportion="0.6080402">
+              <caret line="697" column="31" selection-start-line="697" selection-start-column="31" selection-end-line="697" selection-end-column="31" />
               <folding>
                 <element signature="e#1644#1664#0" expanded="true" />
               </folding>
@@ -59,7 +59,7 @@
         <entry file="file://$PROJECT_DIR$/Planet.h">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="144" column="38" selection-start-line="144" selection-start-column="38" selection-end-line="144" selection-end-column="38" />
+              <caret line="119" column="22" selection-start-line="119" selection-start-column="22" selection-end-line="119" selection-end-column="22" />
               <folding>
                 <element signature="e#98#117#0" expanded="true" />
                 <element signature="e#580#799#1" expanded="false" />
@@ -751,17 +751,6 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Planet.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="144" column="38" selection-start-line="144" selection-start-column="38" selection-end-line="144" selection-end-column="38" />
-          <folding>
-            <element signature="e#98#117#0" expanded="true" />
-            <element signature="e#580#799#1" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Planet.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -775,10 +764,21 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Planet.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="119" column="22" selection-start-line="119" selection-start-column="22" selection-end-line="119" selection-end-column="22" />
+          <folding>
+            <element signature="e#98#117#0" expanded="true" />
+            <element signature="e#580#799#1" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.7504188">
-          <caret line="740" column="16" selection-start-line="740" selection-start-column="16" selection-end-line="740" selection-end-column="16" />
+        <state vertical-scroll-proportion="0.6080402">
+          <caret line="697" column="31" selection-start-line="697" selection-start-column="31" selection-end-line="697" selection-end-column="31" />
           <folding>
             <element signature="e#1644#1664#0" expanded="true" />
           </folding>
