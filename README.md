@@ -2,13 +2,21 @@
 ##Development status
 ###Star Type
 > CenterStar: Fixed,Big,gravity
+
 > InvisibleStar: ~~Invisible unless you are very close to it~~ The skin is dark, so hard to see it.
+
 > SwallowStar:has strong absorption ability
+
 > RepulsiveStar:has anti-gravity
+
 > SwiftStar:hight speed
+
 > NutriStar:make other planet bigger
+
 > DarkStar:when you close it, you can't see anything
+
 > ChaosStar:when you close it, you lose control of yourself
+
 > BreatheStar:the radius is changing like breathe
 
 ###Phiysics Rule
