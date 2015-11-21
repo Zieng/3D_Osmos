@@ -1,9 +1,12 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
+#include <set>
 #include <map>
 #include <string.h>  // for memcmp()
 #include <string>
+#include <cstdlib>
+#include <cstdio>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -18,17 +21,17 @@
 #include <iostream>
 
 #include "Planet.h"
-
+#include <list>
 
 #define max(a, b) ((a) >= (b) ? (a) : (b))
 #define min(a, b) ((a) <  (b) ? (a) : (b))
 #define PI 3.14159265358979323846
-#define WORLD_MAX_X (100)
-#define WORLD_MIN_X (-100)
-#define WORLD_MAX_Y (100)
-#define WORLD_MIN_Y (-100)
-#define WORLD_MAX_Z (100)
-#define WORLD_MIN_Z (-100)
+#define WORLD_MAX_X (50)
+#define WORLD_MIN_X (-50)
+#define WORLD_MAX_Y (50)
+#define WORLD_MIN_Y (-50)
+#define WORLD_MAX_Z (50)
+#define WORLD_MIN_Z (-50)
 #define radius_to_volume(r) ( pow((r),3) )
 #define volume_to_radius(v) ( pow( (v), 1.0/3) )
 #define G_CONST 0.0067f       // universal gravitation const G in our game
@@ -65,9 +68,12 @@ GLint modelMatrixID;
 GLint viewMatrixID;
 GLint lightPositionID;
 
-bool paused = false;
+bool paused = true;
+bool inChaos = false;
 
-vector<Planet> plist;
+vector<Planet > plist;
+//set<Planet> plist;
+//list<Planet> plist;
 
 GLuint loadShaders(const char * vertex_file_path,const char * fragment_file_path)
 {
@@ -284,6 +290,11 @@ void input_handle(glm::vec3 position, glm::vec3 &direction, glm::vec3 &velocity)
 
 void computeMatricesFromInputs(Planet & player)
 {
+    if(glfwGetKey (window, GLFW_KEY_P) ==GLFW_PRESS)
+    {
+        paused = ! paused;
+    }
+
     glm::vec3  player_position = player.get_position();
     glm::vec3  velocity = player.get_velocity();
     glm::vec3 direction;
@@ -410,7 +421,8 @@ void computeMatricesFromInputs(Planet & player)
             up                  // Head is up (set to 0,-1,0 to look upside-down)
     );
 
-    player.set_velocity(velocity);
+    if( !paused )
+        player.set_velocity(velocity);
 }
 
 void draw(Planet & planet)
@@ -464,10 +476,15 @@ void draw(Planet & planet)
     glDisableVertexAttribArray(0);   // AttribArray 必须在调用glDrawArrays之后才能关闭
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
+
 }
 
 void handle_collision(Planet & p1, Planet & p2)
 {
+    if( paused )
+        return ;
+
+
     double currentCollisionTIme = glfwGetTime();
     static double lastCollisionTime = currentCollisionTIme;
 
@@ -525,6 +542,10 @@ void handle_collision(Planet & p1, Planet & p2)
 
 void field_effect(Planet & p1, Planet & p2)
 {
+    if( paused == true)
+        return ;
+
+
     bool flag = (p1.type == CenterStar) || (p1.type == RepulsiveStar);
     Planet & source = flag?p1:p2;
     Planet & target = flag?p2:p1;
@@ -569,6 +590,10 @@ void field_effect(Planet & p1, Planet & p2)
 
 void inside_world(Planet & planet)
 {
+    if( paused )
+        return ;
+
+
     glm::vec3 v = planet.get_velocity();
     glm::vec3 t = planet.get_position();
     double r = planet.get_radius();
@@ -621,6 +646,8 @@ void inside_world(Planet & planet)
 
 int main(int argc, const char * argv[])
 {
+//    vector<Planet> plist;
+
     if (initWindow()!=0) {
         return -1;
     }
@@ -649,21 +676,33 @@ int main(int argc, const char * argv[])
     Planet player = Planet(1,PlayerStar);
     player.set_position(glm::vec3(10,0,0));
 
-    Planet p1 = Planet(2,CenterStar);
-    plist.push_back(p1);
+//    Planet * p1 = new Planet(0.9,NormalStar);
+//    printf("address of centerStar=%p\n",&p1);
+//    plist.push_back(*p1);
+//    printf("address of plist[0]=%p\n",&plist[0]);
 
-    for(int i=0;i<1;i++)
+
+    for(int i=0;i<5;i++)
     {
-        Planet temp = Planet(1,NormalStar);
+        Planet * temp ;
+        if(i==0)
+            temp = new Planet(2,CenterStar);
+        else
+            temp = new Planet(0.9,NormalStar);
+
         glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
-        temp.set_position(pos);
-        plist.push_back(temp);
+
+//        glm::vec3 pos = glm::vec3(  5, 5, 0 );
+
+        temp->set_position(pos);
+        plist.push_back(*temp);
     }
 
     // For speed computation
     double lastTime = glfwGetTime();
     int nbFrames = 0;
 
+    cout<<"size of plist = "<<plist.size()<<endl;
     do
     {
 
@@ -672,52 +711,58 @@ int main(int argc, const char * argv[])
 
         computeMatricesFromInputs(player);
 
-        //apply field effect
-        for(int i=0;i<plist.size();i++)
+        if( paused == false)
         {
-            field_effect(plist[i],player);
-            for(int j=i+1;j<plist.size();j++)
+            //apply field effect
+            for(int i=0;i<plist.size();i++)
             {
-                field_effect(plist[i],plist[j]);
+                field_effect(plist[i],player);
+                for(int j=i+1;j<plist.size();j++)
+                {
+                    field_effect(plist[i],plist[j]);
+                }
+            }
+
+/*****        check collision     ***********/
+            // check border
+            inside_world(player);
+            for(int i=0;i<plist.size();i++)
+            {
+                inside_world(plist[i]);
+            }
+
+            // check between stars
+            for(int i=0;i<plist.size();i++)
+            {
+                if(player.check_collison(plist[i]))
+                    handle_collision(player,plist[i]);
+
+                for(int j=i+1;j<plist.size();j++)
+                {
+                    if(plist[i].check_collison(plist[j]))
+                        handle_collision(plist[i],plist[j]);
+                }
+            }
+
+            // update position
+            player.update_position();
+            for(int i=0;i<plist.size();i++)
+            {
+                plist[i].update_position();
             }
         }
-
-        /***** check collision***********/
-        // check border
-        inside_world(player);
-        for(int i=0;i<plist.size();i++)
-        {
-            inside_world(plist[i]);
-        }
-        // check between stars
-        for(int i=0;i<plist.size();i++)
-        {
-            if(player.check_collison(plist[i]))
-                handle_collision(player,plist[i]);
-        }
-
-        for(int i=0;i<plist.size()-1;i++)
-        {
-            for(int j=i+1;j<plist.size();j++)
-            {
-                if(plist[i].check_collison(plist[j]))
-                    handle_collision(plist[i],plist[j]);
-            }
-        }
-
-        // update position
-        player.update_position();
-        for(int i=0;i<plist.size();i++)
-        {
-            plist[i].update_position();
-        }
-
 
         // draw planet
         draw(player);
-        for ( int i=0;i<plist.size();i++)
+//        draw(p1);
+//        for ( int i=0;i<plist.size();i++)
+//        {
+//            draw( plist[i] );
+//        }
+        vector<Planet>::iterator iter;
+        for(iter = plist.begin();iter != plist.end();iter++)
         {
-            draw(plist[i]);
+            draw( * iter );
         }
 
         glfwSwapBuffers(window);
