@@ -30,4 +30,6 @@ $$F=(GMm)/r^2$$
 
 
 #####Jet to accelerate
+meet problems when put object of Class Planet into a vector.
+finally solve the problem by adding pointers not object so avoiding copy constructor.
 > uncomplete
