@@ -27,12 +27,12 @@
 #define max(a, b) ((a) >= (b) ? (a) : (b))
 #define min(a, b) ((a) <  (b) ? (a) : (b))
 #define PI 3.14159265358979323846
-#define WORLD_MAX_X (50)
-#define WORLD_MIN_X (-50)
-#define WORLD_MAX_Y (50)
-#define WORLD_MIN_Y (-50)
-#define WORLD_MAX_Z (50)
-#define WORLD_MIN_Z (-50)
+#define WORLD_MAX_X (20)
+#define WORLD_MIN_X (-20)
+#define WORLD_MAX_Y (20)
+#define WORLD_MIN_Y (-20)
+#define WORLD_MAX_Z (20)
+#define WORLD_MIN_Z (-20)
 #define radius_to_volume(r) ( pow((r),3) )
 #define volume_to_radius(v) ( pow( (v), 1.0/3) )
 #define G_CONST 0.0067f       // universal gravitation const G in our game
@@ -61,6 +61,7 @@ float rotateAngle = 0;
 float initialFoV = 45.0f;
 float speed = 0.3f;   // 3 units / second
 float mouseSpeed = 0.005f;
+float viewDistance = 10.0f;
 
 GLint MVPID;
 GLint RenderID;
@@ -153,6 +154,23 @@ GLuint loadShaders(const char * vertex_file_path,const char * fragment_file_path
     return ProgramID;
 }
 
+void mousescroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (yoffset > 0)
+    {
+        if(viewDistance <= 45)
+            viewDistance += 0.5;
+
+        cout<<"You change viewDistance to "<<viewDistance<<endl;
+    }
+    else
+    {
+        if(viewDistance >= 5)
+            viewDistance -= 0.5;
+        cout<<"You change viewDistance to "<<viewDistance<<endl;
+    }
+}
+
 int initWindow()
 {
     if (!glfwInit())
@@ -183,6 +201,8 @@ int initWindow()
     glfwGetWindowSize(window,&windowWidth,&windowHeight);
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetScrollCallback(window,mousescroll);
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 //    glEnable(GL_CULL_FACE);
@@ -289,6 +309,59 @@ void input_handle(glm::vec3 position, glm::vec3 &direction, glm::vec3 &velocity)
 
 }
 
+void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCode )
+{
+    if(player.type != PlayerStar)
+        return ;
+
+    float r = player.radius;
+    if(r <= 0.3 )
+    {
+        cout<<"too small to jet child planet"<<endl;
+        return ;
+    }
+
+    glm::vec3 v = player.get_velocity();
+    glm::vec3 pos = player.get_position();
+    float volume = radius_to_volume(r);
+
+    r *= 0.1;
+    v *= 2;
+
+    player.set_radius( volume_to_radius( volume - radius_to_volume( r))   );
+    float R = player.get_radius();
+    Planet * childPlanet = new Planet(r,NormalStar);
+
+    if(buttonCode == 'a')
+    {
+        v = right * v;
+        pos += right * (r + R);
+    }
+    else if( buttonCode == 'd')
+    {
+        v = - right * v;
+        pos -= right * (r + R);
+    }
+    else if( buttonCode == 'w')
+    {
+        pos += direction * (r +R);
+    }
+    else if( buttonCode == 's')
+    {
+        v = - v;
+        pos -= direction * (r + R);
+    }
+    else
+    {
+        cout<<"invalid button directions"<<endl;
+    }
+
+    childPlanet->set_velocity(v);
+    childPlanet->set_position(pos);
+
+    plist.push_back(childPlanet);
+}
+
 void computeMatricesFromInputs(Planet & player)
 {
     if(glfwGetKey (window, GLFW_KEY_P) ==GLFW_PRESS)
@@ -369,21 +442,25 @@ void computeMatricesFromInputs(Planet & player)
     if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS )
     {
         velocity += direction * deltaTime * speed;
+        jet(player,direction,right,'w');
     }
     // Move backward
     if (glfwGetKey( window, GLFW_KEY_S ) == GLFW_PRESS)
     {
         velocity -= direction * deltaTime * speed;
+        jet(player,direction,right,'s');
     }
     // Strafe right
     if (glfwGetKey( window, GLFW_KEY_D ) == GLFW_PRESS)
     {
         velocity += right * deltaTime * speed;
+        jet(player,direction,right,'d');
     }
     // Strafe left
     if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS)
     {
         velocity -= right * deltaTime * speed;
+        jet(player,direction,right,'a');
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE ) == GLFW_PRESS)
     {
@@ -392,8 +469,9 @@ void computeMatricesFromInputs(Planet & player)
             velocity *= 0.9;
         }
         else
+        {
             velocity = glm::vec3(0,0,0);
-
+        }
     }
 
     if( glfwGetKey(window, GLFW_KEY_TAB ) == GLFW_PRESS )
@@ -405,7 +483,7 @@ void computeMatricesFromInputs(Planet & player)
 
     }
 
-    position = player_position - 10.f * direction;
+    position = player_position - viewDistance * direction;
 //    cout<<"Now you are at:("<<position.x<<","<<position.y<<","<<position.z<<"),with verticalAngle="<<verticalAngle<<",horizontalAngle"<<horizontalAngle<<endl;
 
 
@@ -667,15 +745,15 @@ int main(int argc, const char * argv[])
     plist.push_back(p1);
 
 
-    for(int i=0;i<10;i++)
-    {
-        Planet * temp = new Planet(0.9,NormalStar);
-
-        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
-        
-        temp->set_position(pos);
-        plist.push_back(temp);
-    }
+//    for(int i=0;i<10;i++)
+//    {
+//        Planet * temp = new Planet(0.9,NormalStar);
+//
+//        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
+//
+//        temp->set_position(pos);
+//        plist.push_back(temp);
+//    }
 
     // For speed computation
     double lastTime = glfwGetTime();
@@ -760,4 +838,11 @@ int main(int argc, const char * argv[])
     glDeleteVertexArrays(1,&vertexArray);
     glfwTerminate();
 
+    // free space
+    vector<Planet *>::iterator iter;
+    for( iter = plist.begin(); iter != plist.end();  )
+    {
+        delete * iter;
+        iter = plist.erase(iter);
+    }
 }
