@@ -311,7 +311,7 @@ void input_handle(glm::vec3 position, glm::vec3 &direction, glm::vec3 &velocity)
 
 void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCode )
 {
-    if(player.type != PlayerStar)
+    if(player.type != PlayerStar || paused)
         return ;
 
     float r = player.radius;
@@ -509,7 +509,7 @@ void draw(Planet & planet)
     if(planet.destroyed || planet.isActive== false)
         return ;
 
-    int choose=2;
+    int choose=1;
 
     glm::mat4 MVP=ProjectionMatrix * ViewMatrix * planet.self_ModelMatrix;
 
