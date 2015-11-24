@@ -7,45 +7,63 @@
 
 Planet::Planet(double r, PLANET_TYPE t)
 {
+    if( planetInitOK == false)
+    {
+        cout<<"Please init the class planet first!"<<endl;
+    }
 
-    string objPath = "./object/ball_hd2.obj";
-    string texturePath;
+//    string objPath = "./object/ball_hd2.obj";
+//    string texturePath;
 
     switch (t)
     {
         case PlayerStar:
-            texturePath = "./texture/player.png";
+//            texturePath = "./texture/player.png";
+            texture = playerStarTexture;
             break;
         case CenterStar:
-            texturePath = "./texture/sun.png";
+//            texturePath = "./texture/sun.png";
+            texture = centerStarTexture;
             break;
         case InvisibleStar:
-            texturePath = "./texture/invisible.png";
+//            texturePath = "./texture/invisible.png";
+            texture = invisibleStarTexture;
             break;
         case SwallowStar:
-            texturePath = "./texture/swallow.png";
+//            texturePath = "./texture/swallow.png";
+            texture = swallowStarTexture;
             break;
         case RepulsiveStar:
-            texturePath = "./texture/repulsive.png";
+//            texturePath = "./texture/repulsive.png";
+            texture = repulsiveStarTexture;
             break;
         case SwiftStar:
-            texturePath = "./texture/swift.png";
+//            texturePath = "./texture/swift.png";
+            texture = swiftStarTexture;
             break;
         case NutriStar:
-            texturePath = "./texture/nutri.png";
+//            texturePath = "./texture/nutri.png";
+            texture = nutriStarTexture;
             break;
         case DarkStar:
-            texturePath = "./texture/dark.png";
+//            texturePath = "./texture/dark.png";
+            texture = darkStarTexture;
             break;
         case BreatheStar:
-            texturePath = "./texture/breathe.png";
+//            texturePath = "./texture/breathe.png";
+            texture = breatheStarTexture;
             break;
         case NormalStar:
-            texturePath = "./texture/metal.png";
+//            texturePath = "./texture/metal.png";
+            texture = normalStarTexture;
+            break;
+        case ChaosStar:
+            texture = chaosStarTexture;
             break;
         default:
             cout<<endl<<endl<<endl<<endl<<"Undefined!!!!"<<endl<<endl<<endl;
-            texturePath = "./texture/undefined.png";
+//            texturePath = "./texture/undefined.png";
+            texture = undefinedTexture;
             break;
     }
 
@@ -56,38 +74,50 @@ Planet::Planet(double r, PLANET_TYPE t)
     up = glm::vec3(0,1,0);
     radius = (r < 0) ? -r : r;
     lastTime = glfwGetTime();
-    destroyed = false;
+    planetTerminate = false;
     isActive = true;
     type = t;
 
-    vector<glm::vec3> vertices,normals;
-    vector<glm::vec2> uvs;
+//    vector<glm::vec3> vertices,normals;
+//    vector<glm::vec2> uvs;
+//
+//    if (load_OBJ(objPath.c_str(), vertices, uvs, normals) == false)
+//    {
+//        cout<<"res=false"<<endl;
+//        return;
+//    }
+//
+//
+//    texture = load_texture(texturePath.c_str());
+//    if(texture == 0)
+//    {
+//        cout<<"load textre failed"<<endl;
+//        return ;
+//    }
+//
+//    if(r == 0)
+//    {
+//        cout<<"the scale of an object can't be zero"<<endl;
+//        return ;
+//    }
+//
+//    VBO_indexer(vertices, uvs, normals, indexed_vertices, indexed_uvs, indexed_normals, indices);
 
-    if (load_OBJ(objPath.c_str(), vertices, uvs, normals) == false)
+    for(int i=0;i<share_vertices.size();i++)
     {
-        cout<<"res=false"<<endl;
-        return;
+        indexed_vertices.push_back(  (float)radius * share_vertices[i]  );
     }
-
-
-    texture = load_texture(texturePath.c_str());
-    if(texture == 0)
+    for(int i=0;i<share_uvs.size();i++)
     {
-        cout<<"load textre failed"<<endl;
-        return ;
+        indexed_uvs.push_back(  share_uvs[i] );
     }
-
-    if(r == 0)
+    for(int i=0;i<share_normals.size();i++)
     {
-        cout<<"the scale of an object can't be zero"<<endl;
-        return ;
+        indexed_normals.push_back( share_normals[i] );
     }
-
-    VBO_indexer(vertices, uvs, normals, indexed_vertices, indexed_uvs, indexed_normals, indices);
-
-    for(int i=0;i<indexed_vertices.size();i++)
+    for(int i=0;i<share_indices.size();i++)
     {
-        indexed_vertices[i] *= radius/2;  // the original object has radius = 2, so need divide by 2
+        indices.push_back(   share_indices[i]  );
     }
 
 //    float minX=99999,maxX=-9999;
@@ -104,179 +134,188 @@ Planet::Planet(double r, PLANET_TYPE t)
     glBindBuffer(GL_ARRAY_BUFFER,vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
 
-    glGenBuffers(1,&uvBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER,uvBuffer);
-    glBufferData(GL_ARRAY_BUFFER,indexed_uvs.size()* sizeof(glm::vec2),&indexed_uvs[0],GL_STATIC_DRAW);
+    uvBuffer = share_uvBuffer;
+    normalBuffer = share_normalBuffer;
+    elementBuffer = share_elementBuffer;
 
-    glGenBuffers(1,&normalBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER,normalBuffer);
-    glBufferData(GL_ARRAY_BUFFER,indexed_normals.size()* sizeof(glm::vec3),&indexed_normals[0],GL_STATIC_DRAW);
-
-
-    glGenBuffers(1,&elementBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size() * sizeof(unsigned short), &indices[0],GL_STATIC_DRAW);
+//    glGenBuffers(1,&uvBuffer);
+//    glBindBuffer(GL_ARRAY_BUFFER,uvBuffer);
+//    glBufferData(GL_ARRAY_BUFFER,indexed_uvs.size()* sizeof(glm::vec2),&indexed_uvs[0],GL_STATIC_DRAW);
+//
+//    glGenBuffers(1,&normalBuffer);
+//    glBindBuffer(GL_ARRAY_BUFFER,normalBuffer);
+//    glBufferData(GL_ARRAY_BUFFER,indexed_normals.size()* sizeof(glm::vec3),&indexed_normals[0],GL_STATIC_DRAW);
+//
+//
+//    glGenBuffers(1,&elementBuffer);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,elementBuffer);
+//    glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size() * sizeof(unsigned short), &indices[0],GL_STATIC_DRAW);
 
 }
 
 Planet::~Planet()
 {
-    if(!destroyed)
-        destroy();
-}
+    //todo destructor
+    cout<<"delete buffers"<<endl;
+    glDeleteBuffers(1,&vertexBuffer);
+//    glDeleteBuffers(1,&uvBuffer);
+//    glDeleteBuffers(1,&normalBuffer);
 
-bool Planet::load_OBJ(const char *objPath, std::vector<glm::vec3> &out_vertex, std::vector<glm::vec2> &out_uv, std::vector<glm::vec3> &out_normal)
-{
-    vector<unsigned int > vertexIndices,uvIndices,normalIndices;
-    vector<glm::vec3> temp_vertices;
-    vector<glm::vec2> temp_uvs;
-    vector<glm::vec3> temp_normals;
-
-    FILE * file=fopen(objPath, "rb");
-    if (file==NULL)
-    {
-        std::cout<<"open obj file failed!"<<std::endl;
-        return false;
-    }
-    while (1)
-    {
-        char lineHeader[128];
-        if (fscanf(file, "%s",lineHeader)==EOF)
-        {
-            break;
-        }
-
-        if (strcmp(lineHeader, "v")==0)
-        {
-            glm::vec3 newVertex;
-            fscanf(file, "%f %f %f\n",&newVertex.x,&newVertex.y,&newVertex.z);
-            temp_vertices.push_back(newVertex);
-        }
-        else if (strcmp(lineHeader, "vt")==0)
-        {
-            glm::vec2 newUV;
-            fscanf(file, "%f %f\n",&newUV.x,&newUV.y);
-            newUV.y=-newUV.y;
-            temp_uvs.push_back(newUV);
-        }
-        else if (strcmp(lineHeader, "vn")==0)
-        {
-            glm::vec3 newNormal;
-            fscanf(file, "%f %f %f\n",&newNormal.x,&newNormal.y,&newNormal.z);
-            temp_normals.push_back(newNormal);
-        }
-        else if (strcmp(lineHeader, "f")==0)
-        {
-            std::string vertex1,vertex2,vertex3;
-            unsigned int vertexIndex[3],uvIndex[3],normalIndex[3];
-            int matches=fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d",&vertexIndex[0],&uvIndex[0],&normalIndex[0],
-                               &vertexIndex[1],&uvIndex[1],&normalIndex[1],
-                               &vertexIndex[2],&uvIndex[2],&normalIndex[2]);
-            if (matches!=9)
-            {
-                std::cout<<"format mis-match"<<std::endl;
-                return false;
-            }
-            vertexIndices.push_back(vertexIndex[0]);
-            vertexIndices.push_back(vertexIndex[1]);
-            vertexIndices.push_back(vertexIndex[2]);
-            uvIndices.push_back(uvIndex[0]);
-            uvIndices.push_back(uvIndex[1]);
-            uvIndices.push_back(uvIndex[2]);
-            normalIndices.push_back(normalIndex[0]);
-            normalIndices.push_back(normalIndex[1]);
-            normalIndices.push_back(normalIndex[2]);
-        }
-        else
-        {
-            char stupidBuffer[1000];
-            fgets(stupidBuffer, 1000, file);
-        }
-
-    }
-    for( unsigned int i=0; i<vertexIndices.size(); i++ )
-    {
-
-        // Get the indices of its attributes
-        unsigned int vertexIndex = vertexIndices[i];
-        unsigned int uvIndex = uvIndices[i];
-        unsigned int normalIndex = normalIndices[i];
-
-        // Get the attributes thanks to the index
-        glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
-        glm::vec2 uv = temp_uvs[ uvIndex-1 ];
-        glm::vec3 normal = temp_normals[ normalIndex-1 ];
-
-        // Put the attributes in buffers
-        out_vertex.push_back(vertex);
-        out_uv     .push_back(uv);
-        out_normal .push_back(normal);
-    }
-
-    return true;
 
 }
 
-void Planet::VBO_indexer(vector<glm::vec3> &in_vertices, vector<glm::vec2> &in_uvs, vector<glm::vec3> &in_normals,
-                         vector<glm::vec3> &out_vertices, vector<glm::vec2> &out_uvs, vector<glm::vec3> &out_normals,
-                         vector<unsigned short> &indices)
-{
-    map<PackedVertex,unsigned short> indexedVertices;
-
-    for (int i=0; i<in_vertices.size(); i++) {
-        PackedVertex p={in_vertices[i],in_uvs[i],in_normals[i]};
-        bool Indexed=false;
-        unsigned short index;
-
-        map<PackedVertex, unsigned short>::iterator it=indexedVertices.find(p);
-        if (it!=indexedVertices.end()) {
-            Indexed=true;
-            index=it->second;
-        }
-
-        if (Indexed) {
-            indices.push_back(index);
-        }
-        else{
-            out_vertices.push_back(in_vertices[i]);
-            out_uvs.push_back(in_uvs[i]);
-            out_normals.push_back(in_normals[i]);
-            unsigned short newIndex=(unsigned short)out_vertices.size()-1;
-            indices.push_back(newIndex);
-            indexedVertices[p]=newIndex;
-        }
-    }
-}
-
-GLuint Planet::load_texture(const char *image_path)
-{
-    GLuint Texture;
-    int image_channels;
-    int image_width_d, image_height_d;
-    unsigned char * image_buffer;
-
-    glGenTextures(1,&Texture);
-    glBindTexture(GL_TEXTURE_2D, Texture);
-    image_buffer = SOIL_load_image(image_path, &image_width_d, &image_height_d, &image_channels, 4);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width_d, image_height_d, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_buffer);
-    SOIL_free_image_data(image_buffer);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    /* check for an error during the load process */
-    if( 0 == Texture )
-    {
-        printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
-    }
-
-    cout<<"Texture "<<image_path<<" load successfully! texture="<<Texture<<endl;
-
-    return Texture;
-}
+//bool Planet::load_OBJ(const char *objPath, std::vector<glm::vec3> &out_vertex, std::vector<glm::vec2> &out_uv, std::vector<glm::vec3> &out_normal)
+//{
+//    vector<unsigned int > vertexIndices,uvIndices,normalIndices;
+//    vector<glm::vec3> temp_vertices;
+//    vector<glm::vec2> temp_uvs;
+//    vector<glm::vec3> temp_normals;
+//
+//    FILE * file=fopen(objPath, "rb");
+//    if (file==NULL)
+//    {
+//        std::cout<<"open obj file failed!"<<std::endl;
+//        return false;
+//    }
+//    while (1)
+//    {
+//        char lineHeader[128];
+//        if (fscanf(file, "%s",lineHeader)==EOF)
+//        {
+//            break;
+//        }
+//
+//        if (strcmp(lineHeader, "v")==0)
+//        {
+//            glm::vec3 newVertex;
+//            fscanf(file, "%f %f %f\n",&newVertex.x,&newVertex.y,&newVertex.z);
+//            temp_vertices.push_back(newVertex);
+//        }
+//        else if (strcmp(lineHeader, "vt")==0)
+//        {
+//            glm::vec2 newUV;
+//            fscanf(file, "%f %f\n",&newUV.x,&newUV.y);
+//            newUV.y=-newUV.y;
+//            temp_uvs.push_back(newUV);
+//        }
+//        else if (strcmp(lineHeader, "vn")==0)
+//        {
+//            glm::vec3 newNormal;
+//            fscanf(file, "%f %f %f\n",&newNormal.x,&newNormal.y,&newNormal.z);
+//            temp_normals.push_back(newNormal);
+//        }
+//        else if (strcmp(lineHeader, "f")==0)
+//        {
+//            std::string vertex1,vertex2,vertex3;
+//            unsigned int vertexIndex[3],uvIndex[3],normalIndex[3];
+//            int matches=fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d",&vertexIndex[0],&uvIndex[0],&normalIndex[0],
+//                               &vertexIndex[1],&uvIndex[1],&normalIndex[1],
+//                               &vertexIndex[2],&uvIndex[2],&normalIndex[2]);
+//            if (matches!=9)
+//            {
+//                std::cout<<"format mis-match"<<std::endl;
+//                return false;
+//            }
+//            vertexIndices.push_back(vertexIndex[0]);
+//            vertexIndices.push_back(vertexIndex[1]);
+//            vertexIndices.push_back(vertexIndex[2]);
+//            uvIndices.push_back(uvIndex[0]);
+//            uvIndices.push_back(uvIndex[1]);
+//            uvIndices.push_back(uvIndex[2]);
+//            normalIndices.push_back(normalIndex[0]);
+//            normalIndices.push_back(normalIndex[1]);
+//            normalIndices.push_back(normalIndex[2]);
+//        }
+//        else
+//        {
+//            char stupidBuffer[1000];
+//            fgets(stupidBuffer, 1000, file);
+//        }
+//
+//    }
+//    for( unsigned int i=0; i<vertexIndices.size(); i++ )
+//    {
+//
+//        // Get the indices of its attributes
+//        unsigned int vertexIndex = vertexIndices[i];
+//        unsigned int uvIndex = uvIndices[i];
+//        unsigned int normalIndex = normalIndices[i];
+//
+//        // Get the attributes thanks to the index
+//        glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
+//        glm::vec2 uv = temp_uvs[ uvIndex-1 ];
+//        glm::vec3 normal = temp_normals[ normalIndex-1 ];
+//
+//        // Put the attributes in buffers
+//        out_vertex.push_back(vertex);
+//        out_uv     .push_back(uv);
+//        out_normal .push_back(normal);
+//    }
+//
+//    return true;
+//
+//}
+//
+//void Planet::VBO_indexer(vector<glm::vec3> &in_vertices, vector<glm::vec2> &in_uvs, vector<glm::vec3> &in_normals,
+//                         vector<glm::vec3> &out_vertices, vector<glm::vec2> &out_uvs, vector<glm::vec3> &out_normals,
+//                         vector<unsigned short> &indices)
+//{
+//    map<PackedVertex,unsigned short> indexedVertices;
+//
+//    for (int i=0; i<in_vertices.size(); i++) {
+//        PackedVertex p={in_vertices[i],in_uvs[i],in_normals[i]};
+//        bool Indexed=false;
+//        unsigned short index;
+//
+//        map<PackedVertex, unsigned short>::iterator it=indexedVertices.find(p);
+//        if (it!=indexedVertices.end()) {
+//            Indexed=true;
+//            index=it->second;
+//        }
+//
+//        if (Indexed) {
+//            indices.push_back(index);
+//        }
+//        else{
+//            out_vertices.push_back(in_vertices[i]);
+//            out_uvs.push_back(in_uvs[i]);
+//            out_normals.push_back(in_normals[i]);
+//            unsigned short newIndex=(unsigned short)out_vertices.size()-1;
+//            indices.push_back(newIndex);
+//            indexedVertices[p]=newIndex;
+//        }
+//    }
+//}
+//
+//GLuint Planet::load_texture(const char *image_path)
+//{
+//    GLuint Texture;
+//    int image_channels;
+//    int image_width_d, image_height_d;
+//    unsigned char * image_buffer;
+//
+//    glGenTextures(1,&Texture);
+//    glBindTexture(GL_TEXTURE_2D, Texture);
+//    image_buffer = SOIL_load_image(image_path, &image_width_d, &image_height_d, &image_channels, 4);
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width_d, image_height_d, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_buffer);
+//    SOIL_free_image_data(image_buffer);
+//
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//    glGenerateMipmap(GL_TEXTURE_2D);
+//
+//    /* check for an error during the load process */
+//    if( 0 == Texture )
+//    {
+//        printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
+//    }
+//
+//    cout<<"Texture "<<image_path<<" load successfully! texture="<<Texture<<endl;
+//
+//    return Texture;
+//}
 
 void Planet::set_position(glm::vec3 p)
 {
@@ -337,36 +376,6 @@ void Planet::update_position(const glm::mat4 &parentModelMatrix)
 
 }
 
-void Planet::set_orbital(int aa, int bb)
-{
-    if(type == CenterStar)
-    {
-        cout<<"Fixed star no need set orbital!"<<endl;
-        return ;
-    }
-    a = aa;
-    b = bb;
-//    theta = (double) random();
-    theta = 0;
-
-    glm::vec3 vertex;
-    for(float i=0;i<2*3.11415926539;i+=0.01)
-    {
-        vertex.x = a * glm::cos(theta+i);
-        vertex.y = b * glm::sin(theta+i);
-        vertex.z = 0;
-
-        orbital_vertices.push_back(vertex);
-    }
-
-    glGenBuffers(1,&orbital_vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER,orbital_vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, orbital_vertices.size() * sizeof(glm::vec3), &orbital_vertices[0], GL_STATIC_DRAW);
-
-    // calcualte the self model matrix
-    update_position();
-}
-
 void Planet::set_radius(double r)
 {
     r = (r < 0) ? -r : r;
@@ -390,14 +399,6 @@ void Planet::set_radius(double r)
 
 }
 
-void Planet::destroy()
-{
-    glDeleteBuffers(1,&vertexBuffer);
-    glDeleteBuffers(1,&uvBuffer);
-    glDeleteBuffers(1,&normalBuffer);
-    glDeleteTextures(1,&texture);
-    destroyed = true;
-}
 
 glm::mat4 Planet::get_model_matrix()
 {
@@ -475,3 +476,29 @@ bool Planet::get_active_state()
 {
     return isActive;
 }
+
+
+// init static members
+bool Planet::planetInitOK = false;
+bool Planet::planetTerminate = false;
+GLuint Planet::playerStarTexture   = 0;
+GLuint Planet::centerStarTexture   = 0;
+GLuint Planet::normalStarTexture   = 0;
+GLuint Planet::repulsiveStarTexture= 0;
+GLuint Planet::invisibleStarTexture= 0;
+GLuint Planet::swiftStarTexture    = 0;
+GLuint Planet::swallowStarTexture  = 0;
+GLuint Planet::nutriStarTexture    = 0;
+GLuint Planet::darkStarTexture     = 0;
+GLuint Planet::chaosStarTexture    = 0;
+GLuint Planet::breatheStarTexture  = 0;
+GLuint Planet::undefinedTexture    = 0;
+
+vector<unsigned short > Planet::share_indices(1)   ;
+vector<glm::vec3> Planet::share_vertices(1)        ;
+vector<glm::vec2> Planet::share_uvs(1)             ;
+vector<glm::vec3> Planet::share_normals(1)         ;
+
+GLuint Planet::share_uvBuffer = 0;
+GLuint Planet::share_normalBuffer = 0;
+GLuint Planet::share_elementBuffer = 0;

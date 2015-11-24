@@ -506,7 +506,7 @@ void computeMatricesFromInputs(Planet & player)
 
 void draw(Planet & planet)
 {
-    if(planet.destroyed || planet.isActive== false)
+    if(planet.planetTerminate || planet.isActive == false)
         return ;
 
     int choose=1;
@@ -662,7 +662,7 @@ void inside_world(Planet & planet)
     glm::vec3 v = planet.get_velocity();
     glm::vec3 t = planet.get_position();
     double r = planet.get_radius();
-    float offset = 0.5;   // to avoid planet stuck at the boarder
+    float offset = 0.01;   // to avoid planet stuck at the boarder
     bool changed = false;
 
     if( t.x < WORLD_MIN_X + r )
@@ -737,12 +737,15 @@ int main(int argc, const char * argv[])
     glGenVertexArrays(1,&vertexArray);
     glBindVertexArray(vertexArray);
 
-
+    Planet::planet_init();
     Planet player = Planet(1,PlayerStar);
     player.set_position(glm::vec3(10,0,0));
 
     Planet * p1 = new Planet(2,CenterStar);
     plist.push_back(p1);
+    Planet * p2 = new Planet(0.9,RepulsiveStar);
+    p2->set_position(glm::vec3(5,3,0));
+    plist.push_back(p2);
 
 
 //    for(int i=0;i<10;i++)
@@ -845,4 +848,6 @@ int main(int argc, const char * argv[])
         delete * iter;
         iter = plist.erase(iter);
     }
+
+    Planet::planet_terminate();
 }
