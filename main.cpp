@@ -43,7 +43,7 @@ using namespace glm;
 GLFWwindow * window;
 GLint windowWidth;
 GLint windowHeight;
-
+GLint ProgramID;
 // universe for all objects
 glm::mat4 ViewMatrix;
 glm::mat4 ProjectionMatrix;
@@ -72,6 +72,24 @@ GLint lightPositionID;
 
 bool paused = true;
 bool inChaos = false;
+bool drawBg = false;
+bool noChild = true;
+
+// for background
+struct node
+{
+    glm::vec3 pos;   // z will be 0
+    glm::vec3 velocity;   // z will be 0
+    glm::vec3 color;
+};
+typedef struct  node particle;
+std::vector<particle> particleSet;
+int particleNum=200;
+std::vector<glm::vec3> posSet;
+std::vector<glm::vec3> colorSet;
+std::vector<glm::vec3> velocitySet;
+GLuint bg_vertexBuffer;
+GLuint bg_colorBuffer;
 
 vector<Planet * > plist;
 //set<Planet> plist;
@@ -205,7 +223,7 @@ int initWindow()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-//    glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 
     // to see the orbital clearly , need change the point size
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -311,7 +329,7 @@ void input_handle(glm::vec3 position, glm::vec3 &direction, glm::vec3 &velocity)
 
 void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCode )
 {
-    if(player.type != PlayerStar || paused)
+    if(player.type != PlayerStar || paused || noChild )
         return ;
 
     float r = player.radius;
@@ -325,7 +343,7 @@ void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCod
     glm::vec3 pos = player.get_position();
     float volume = radius_to_volume(r);
 
-    r *= 0.1;
+    r *= 0.3;
     v *= 2;
 
     player.set_radius( volume_to_radius( volume - radius_to_volume( r))   );
@@ -364,9 +382,17 @@ void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCod
 
 void computeMatricesFromInputs(Planet & player)
 {
-    if(glfwGetKey (window, GLFW_KEY_P) ==GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_P ) == GLFW_PRESS )
     {
         paused = ! paused;
+    }
+    if(glfwGetKey(window,GLFW_KEY_B) == GLFW_PRESS)
+    {
+        drawBg = ! drawBg;
+    }
+    if(glfwGetKey(window,GLFW_KEY_N) == GLFW_PRESS)
+    {
+        noChild = ! noChild;
     }
 
     glm::vec3  player_position = player.get_position();
@@ -441,28 +467,60 @@ void computeMatricesFromInputs(Planet & player)
     // Move forward
     if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS )
     {
-        velocity += direction * deltaTime * speed;
-        jet(player,direction,right,'w');
+        if(inChaos)
+        {
+            velocity -= right * deltaTime * speed;
+            jet(player,direction,right,'a');
+        }
+        else
+        {
+            velocity += direction * deltaTime * speed;
+            jet(player,direction,right,'w');
+        }
     }
     // Move backward
     if (glfwGetKey( window, GLFW_KEY_S ) == GLFW_PRESS)
     {
-        velocity -= direction * deltaTime * speed;
-        jet(player,direction,right,'s');
+        if(inChaos)
+        {
+            velocity += right * deltaTime * speed;
+            jet(player,direction,right,'d');
+        }
+        else
+        {
+            velocity -= direction * deltaTime * speed;
+            jet(player,direction,right,'s');
+        }
     }
     // Strafe right
     if (glfwGetKey( window, GLFW_KEY_D ) == GLFW_PRESS)
     {
-        velocity += right * deltaTime * speed;
-        jet(player,direction,right,'d');
+        if(inChaos)
+        {
+            velocity += direction * deltaTime * speed;
+            jet(player,direction,right,'w');
+        }
+        else
+        {
+            velocity += right * deltaTime * speed;
+            jet(player,direction,right,'d');
+        }
     }
     // Strafe left
     if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS)
     {
-        velocity -= right * deltaTime * speed;
-        jet(player,direction,right,'a');
+        if(inChaos)
+        {
+            velocity -= direction * deltaTime * speed;
+            jet(player,direction,right,'s');
+        }
+        else
+        {
+            velocity -= right * deltaTime * speed;
+            jet(player,direction,right,'a');
+        }
     }
-    if (glfwGetKey(window, GLFW_KEY_SPACE ) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_SPACE ) == GLFW_PRESS && inChaos == false)
     {
         if( velocity.length() >= 0.1f )     /// why glm::length(velocity) return glm::vec3????/todo
         {
@@ -486,12 +544,6 @@ void computeMatricesFromInputs(Planet & player)
     position = player_position - viewDistance * direction;
 //    cout<<"Now you are at:("<<position.x<<","<<position.y<<","<<position.z<<"),with verticalAngle="<<verticalAngle<<",horizontalAngle"<<horizontalAngle<<endl;
 
-
-    if(glfwGetKey(window, GLFW_KEY_P ) == GLFW_PRESS )
-    {
-        paused = (paused)?false:true;
-    }
-
     float FoV = initialFoV ;
     ProjectionMatrix = glm::perspective(FoV, windowWidth/(float)windowHeight, 0.1f, 100.0f);
     ViewMatrix       = glm::lookAt(
@@ -502,6 +554,84 @@ void computeMatricesFromInputs(Planet & player)
 
     if( !paused )
         player.set_velocity(velocity);
+}
+
+void draw_background()
+{
+    typedef vector<glm::vec3> group;
+    vector< group> lineSet;
+    double cursorPosX,cursorPosY;
+
+    glfwGetCursorPos(window, &cursorPosX, &cursorPosY);
+    cursorPosX= (2*cursorPosX - windowWidth) / windowWidth;
+    cursorPosY= (windowHeight - 2 * cursorPosY ) / windowHeight;
+    // cout<<cursorPosX<<","<<cursorPosY<<endl;
+    group cursorGroup;
+    glm::vec3 cursorPoint=glm::vec3(cursorPosX,cursorPosY,0);
+
+    cursorGroup.push_back(cursorPoint);
+    for(int i=0;i<particleNum;i++){
+        if(abs(posSet[i].x-cursorPosX) + abs(posSet[i].y-cursorPosY) <= 0.2)
+            cursorGroup.push_back(posSet[i]);
+    }
+    lineSet.push_back(cursorGroup);
+
+    for(int i=0;i<particleNum;i++){
+        // border collision check
+        if(std::abs(posSet[i].x+velocitySet[i].x)>1)
+            velocitySet[i].x=-velocitySet[i].x;
+        if(std::abs(posSet[i].y+velocitySet[i].y)>1)
+            velocitySet[i].y=-velocitySet[i].y;
+        posSet[i].x=posSet[i].x+velocitySet[i].x;
+        posSet[i].y=posSet[i].y+velocitySet[i].y;
+        // line them up
+        group g;
+        g.push_back(posSet[i]);
+        for(int j=i+1;j<particleNum;j++){
+            if(abs(posSet[i].x-posSet[j].x) + abs(posSet[i].y-posSet[j].y) <= 0.1)
+                g.push_back(posSet[j]);
+        }
+        lineSet.push_back(g);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER,bg_vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, posSet.size() * sizeof(glm::vec3), &posSet[0], GL_STATIC_DRAW);
+
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(ProgramID);
+
+    glm::mat4 MVP=glm::mat4(1.0f);
+
+    glUniformMatrix4fv(MVPID,1,GL_FALSE,&MVP[0][0]);
+    glUniform1i(RenderID,2);
+
+    // vertex position
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER,bg_vertexBuffer);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+
+    // vertex color
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER,bg_colorBuffer);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+
+    glDrawArrays(GL_POINTS, 0, (GLuint) posSet.size());
+
+    for(int i=0;i<lineSet.size();i++){
+        group g=lineSet[i];
+
+        GLuint lineBuffer;
+        glGenBuffers(1,&lineBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER,lineBuffer);
+        glBufferData(GL_ARRAY_BUFFER,g.size() * sizeof(glm::vec3),&g[0],GL_STATIC_DRAW);
+        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+        glDrawArrays(GL_LINE_LOOP,0,(GLuint) g.size());
+
+        glDeleteBuffers(1,&lineBuffer);
+    }
+
+    glDisableVertexAttribArray(0);   // AttribArray 必须在调用glDrawArrays之后才能关闭
+    glDisableVertexAttribArray(1);
 }
 
 void draw(Planet & planet)
@@ -611,7 +741,7 @@ void field_effect(Planet & p1, Planet & p2)
         return ;
 
 
-    bool flag = (p1.type == CenterStar) || (p1.type == RepulsiveStar);
+    bool flag = (p1.type == CenterStar) || (p1.type == RepulsiveStar) || (p1.type == ChaosStar) || (p1.type == DarkStar);
     Planet & source = flag?p1:p2;
     Planet & target = flag?p2:p1;
 
@@ -621,15 +751,15 @@ void field_effect(Planet & p1, Planet & p2)
 //        cout<<"no need check non-active planet"<<endl;
         return ;
     }
-    if(source.type != CenterStar && source.type != RepulsiveStar)
+    if(source.type != CenterStar && source.type != RepulsiveStar && source.type != ChaosStar && source.type != DarkStar)
     {
 //        cout<<"source planet has no filed!"<<endl;
         return ;
     }
 
-    if( (source.type == CenterStar && target.type==RepulsiveStar) || (source.type==RepulsiveStar && target.type == CenterStar) )
+    if( (source.type == CenterStar && target.type==RepulsiveStar) || (source.type==RepulsiveStar && target.type == CenterStar) || target.type == ChaosStar )
     {
-        cout<<"CenterStar field and RepulsiveStar field neutralize!"<<endl;
+//        cout<<"CenterStar field and RepulsiveStar field neutralize!"<<endl;
         return ;
     }
 
@@ -641,7 +771,14 @@ void field_effect(Planet & p1, Planet & p2)
     float distance = sqrt( temp.x*temp.x   +   temp.y*temp.y  +   temp.z*temp.z );
     glm::vec3 direction = glm::normalize(sourcePos - targetPos);
 
-    if(source.type == CenterStar)   // attraction
+    if(source.type == ChaosStar && target.type == PlayerStar)
+    {
+        const glm::vec3 temp = source.get_position() - target.get_position();
+        float distance = sqrt( temp.x*temp.x   +   temp.y*temp.y  +   temp.z*temp.z );
+
+        inChaos = (distance <= 3* source.get_radius() )? true: false;
+    }
+    else if(source.type == CenterStar)   // attraction
     {
         target.set_velocity( target.get_velocity() + (G_CONST*sourceM/ (float)pow(distance,2)) * direction  );
     }
@@ -717,7 +854,7 @@ int main(int argc, const char * argv[])
         return -1;
     }
 
-    GLint ProgramID=loadShaders("VertexShader.glsl", "FragmentShader.glsl");
+    ProgramID=loadShaders("VertexShader.glsl", "FragmentShader.glsl");
     if (ProgramID==-1)
     {
         cout<<"ProgramID=-1"<<endl;
@@ -737,13 +874,44 @@ int main(int argc, const char * argv[])
     glGenVertexArrays(1,&vertexArray);
     glBindVertexArray(vertexArray);
 
+    // create background
+    for(int i=0;i<particleNum;i++)
+    {
+        particle p;
+        p.pos=glm::vec3(  2*(rand()%windowWidth-windowWidth/2)/(float)windowWidth, 2*(rand()%windowHeight-windowHeight/2)/(float)windowHeight,  0  );
+
+        if(std::find(posSet.begin(),posSet.end(),p.pos)  !=  posSet.end()){
+            i--;
+        }
+        else{
+            p.velocity=glm::vec3(  (rand()%10-5)/(float)5000,  (rand()%10-5)/(float)5000,  0  );
+            p.color=glm::vec3( rand()%100/(float)100,rand()%100/(float)100,rand()%100/(float)100);
+            posSet.push_back(p.pos);
+            colorSet.push_back(p.color);
+            velocitySet.push_back(p.velocity);
+
+            particleSet.push_back(p);
+        }
+    }
+
+
+    glGenBuffers(1,&bg_vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER,bg_vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, posSet.size() * sizeof(glm::vec3), &posSet[0], GL_STATIC_DRAW);
+
+
+    glGenBuffers(1,&bg_colorBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER,bg_colorBuffer);
+    glBufferData(GL_ARRAY_BUFFER,colorSet.size() * sizeof(glm::vec3), &colorSet[0], GL_STATIC_DRAW);
+
+    // create Planet
     Planet::planet_init();
     Planet player = Planet(1,PlayerStar);
     player.set_position(glm::vec3(10,0,0));
 
-    Planet * p1 = new Planet(2,CenterStar);
-    plist.push_back(p1);
-    Planet * p2 = new Planet(0.9,RepulsiveStar);
+//    Planet * p1 = new Planet(2,CenterStar);
+//    plist.push_back(p1);
+    Planet * p2 = new Planet(0.9,ChaosStar);
     p2->set_position(glm::vec3(5,3,0));
     plist.push_back(p2);
 
@@ -831,16 +999,17 @@ int main(int argc, const char * argv[])
             draw( * plist[i] );
         }
 
+        if(drawBg)
+        {
+            draw_background();
+        }
+
         glfwSwapBuffers(window);
         glfwPollEvents();
 
     }while (glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0);
 
     player.print_info();
-    glDeleteProgram(ProgramID);
-    glDeleteVertexArrays(1,&vertexArray);
-    glfwTerminate();
-
     // free space
     vector<Planet *>::iterator iter;
     for( iter = plist.begin(); iter != plist.end();  )
@@ -848,6 +1017,15 @@ int main(int argc, const char * argv[])
         delete * iter;
         iter = plist.erase(iter);
     }
-
     Planet::planet_terminate();
+
+
+
+    glDeleteProgram(ProgramID);
+    glDeleteBuffers(1,&bg_colorBuffer);
+    glDeleteBuffers(1,&bg_vertexBuffer);
+    glDeleteVertexArrays(1,&vertexArray);
+    glfwTerminate();
+
+
 }

@@ -12,9 +12,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6bbee26f-e766-4c17-8815-deea734089fc" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/texture/blankwhite_earth.png" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Planet.cpp" afterPath="$PROJECT_DIR$/Planet.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Planet.h" afterPath="$PROJECT_DIR$/Planet.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
     </list>
     <ignored path="Osmos.iws" />
@@ -36,20 +33,22 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="538" column="31" selection-start-line="538" selection-start-column="31" selection-end-line="538" selection-end-column="31" />
-              <folding />
+            <state vertical-scroll-proportion="0.64953274">
+              <caret line="913" column="43" selection-start-line="913" selection-start-column="43" selection-end-line="913" selection-end-column="44" />
+              <folding>
+                <element signature="e#1743#1856#1" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Planet.h" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Planet.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Planet.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.46261683">
+            <state vertical-scroll-proportion="0.0">
               <caret line="325" column="58" selection-start-line="325" selection-start-column="58" selection-end-line="325" selection-end-column="58" />
               <folding>
                 <element signature="e#580#799#1" expanded="false" />
@@ -64,7 +63,7 @@
         <entry file="file://$PROJECT_DIR$/Planet.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="138" column="40" selection-start-line="138" selection-start-column="40" selection-end-line="138" selection-end-column="40" />
+              <caret line="430" column="83" selection-start-line="430" selection-start-column="83" selection-end-line="430" selection-end-column="83" />
               <folding />
             </state>
           </provider>
@@ -84,8 +83,8 @@
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/FragmentShader.glsl" />
         <option value="$PROJECT_DIR$/Planet.cpp" />
-        <option value="$PROJECT_DIR$/main.cpp" />
         <option value="$PROJECT_DIR$/Planet.h" />
+        <option value="$PROJECT_DIR$/main.cpp" />
       </list>
     </option>
   </component>
@@ -95,9 +94,8 @@
     <detection-done>true</detection-done>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="840" />
     <option name="y" value="23" />
-    <option name="width" value="840" />
+    <option name="width" value="1680" />
     <option name="height" value="1023" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -241,7 +239,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="840" y="23" width="840" height="1023" extended-state="0" />
+    <frame x="0" y="23" width="1680" height="1023" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.46153846" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -314,7 +312,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="364" column="27" selection-start-line="364" selection-start-column="27" selection-end-line="364" selection-end-column="27" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -350,7 +350,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -386,7 +388,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -422,7 +426,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -458,7 +464,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -494,7 +502,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -530,7 +540,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -566,7 +578,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -602,7 +616,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -626,7 +642,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -650,7 +668,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#1743#1856#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -693,30 +713,32 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.cpp">
+    <entry file="file://$PROJECT_DIR$/Planet.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="538" column="31" selection-start-line="538" selection-start-column="31" selection-end-line="538" selection-end-column="31" />
-          <folding />
+          <caret line="325" column="58" selection-start-line="325" selection-start-column="58" selection-end-line="325" selection-end-column="58" />
+          <folding>
+            <element signature="e#580#799#1" expanded="false" />
+            <element signature="e#802#1000#1" expanded="false" />
+            <element signature="e#12255#13050#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Planet.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="138" column="40" selection-start-line="138" selection-start-column="40" selection-end-line="138" selection-end-column="40" />
+          <caret line="430" column="83" selection-start-line="430" selection-start-column="83" selection-end-line="430" selection-end-column="83" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Planet.h">
+    <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.46261683">
-          <caret line="325" column="58" selection-start-line="325" selection-start-column="58" selection-end-line="325" selection-end-column="58" />
+        <state vertical-scroll-proportion="0.64953274">
+          <caret line="913" column="43" selection-start-line="913" selection-start-column="43" selection-end-line="913" selection-end-column="44" />
           <folding>
-            <element signature="e#580#799#1" expanded="false" />
-            <element signature="e#802#1000#1" expanded="false" />
-            <element signature="e#12255#13050#0" expanded="true" />
+            <element signature="e#1743#1856#1" expanded="false" />
           </folding>
         </state>
       </provider>
