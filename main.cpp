@@ -72,8 +72,11 @@ GLint lightPositionID;
 
 bool paused = true;
 bool inChaos = false;
+
+// debug options
 bool drawBg = false;
 bool noChild = true;
+bool applyField = true;
 
 // for background
 struct node
@@ -202,7 +205,7 @@ int initWindow()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window=glfwCreateWindow(1200,800, "My SolarSystem!", NULL, NULL);
+    window=glfwCreateWindow(1280,720, "My SolarSystem!", NULL, NULL);
     if (window==NULL)
     {
         std::cout<<"create window failed!"<<std::endl;
@@ -223,7 +226,7 @@ int initWindow()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
+//    glEnable(GL_CULL_FACE);
 
     // to see the orbital clearly , need change the point size
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -702,7 +705,8 @@ void handle_collision(Planet & p1, Planet & p2)
     double bigVolume = radius_to_volume( bigPlanet.get_radius() );   // volume of bigPlanet
     double smallVolume = radius_to_volume( smallPlanet.get_radius() );  // volume of smallPlanet
     double wholeVolume = bigVolume + smallVolume;
-
+    float M1 = (float) bigVolume;
+    float m1 = (float) smallVolume;
 
     cout<<"P1 is at "<<glm::to_string(p1.get_position())<<"\t P2 is at "<<glm::to_string(p2.get_position())<<endl;
     cout<<"P1 has radius = "<<p1.get_radius()<<"\t P2 has radius = "<<p2.get_radius()<<endl;
@@ -724,12 +728,14 @@ void handle_collision(Planet & p1, Planet & p2)
 
     }
 //    //todo set velocity change
-    float M1 = radius_to_volume(  bigPlanet.get_radius()  );
-    float m1 = radius_to_volume(  smallPlanet.get_radius()  );
+//    float M1 = radius_to_volume(  bigPlanet.get_radius()  );
+//    float m1 = radius_to_volume(  smallPlanet.get_radius()  );
 
     glm::vec3 v1 = bigPlanet.get_velocity();
     glm::vec3 v2 = smallPlanet.get_velocity();
-    bigPlanet.set_velocity( ( M1 * v1 +  m1 * v2) / (M1 + m1) );
+
+    // if set bigPlanet's velocity , may stuck when absorption
+//    bigPlanet.set_velocity( ( M1 * v1 +  m1 * v2) / (M1 + m1) );
 
     lastCollisionTime = currentCollisionTIme;
 
@@ -799,7 +805,7 @@ void inside_world(Planet & planet)
     glm::vec3 v = planet.get_velocity();
     glm::vec3 t = planet.get_position();
     double r = planet.get_radius();
-    float offset = 0.01;   // to avoid planet stuck at the boarder
+    float offset = 0.0001f;   // to avoid planet stuck at the boarder
     bool changed = false;
 
     if( t.x < WORLD_MIN_X + r )
@@ -911,20 +917,20 @@ int main(int argc, const char * argv[])
 
 //    Planet * p1 = new Planet(2,CenterStar);
 //    plist.push_back(p1);
-    Planet * p2 = new Planet(0.9,ChaosStar);
-    p2->set_position(glm::vec3(5,3,0));
-    plist.push_back(p2);
+//    Planet * p2 = new Planet(0.9,ChaosStar);
+//    p2->set_position(glm::vec3(5,3,0));
+//    plist.push_back(p2);
 
 
-//    for(int i=0;i<10;i++)
-//    {
-//        Planet * temp = new Planet(0.9,NormalStar);
-//
-//        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
-//
-//        temp->set_position(pos);
-//        plist.push_back(temp);
-//    }
+    for(int i=0;i<10;i++)
+    {
+        Planet * temp = new Planet(0.9,NormalStar);
+
+        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
+
+        temp->set_position(pos);
+        plist.push_back(temp);
+    }
 
     // For speed computation
     double lastTime = glfwGetTime();
@@ -951,17 +957,22 @@ int main(int argc, const char * argv[])
                 iter++;
         }
 
+        // apply changes when not pause
         if( paused == false)
         {
             //apply field effect
-            for(int i=0;i<plist.size();i++)
+            if( applyField )
             {
-                field_effect(*plist[i],player);
-                for(int j=i+1;j<plist.size();j++)
+                for(int i=0;i<plist.size();i++)
                 {
-                    field_effect(*plist[i],*plist[j]);
+                    field_effect(*plist[i],player);
+                    for(int j=i+1;j<plist.size();j++)
+                    {
+                        field_effect(*plist[i],*plist[j]);
+                    }
                 }
             }
+
 
 /*****        check collision     ***********/
             // check border

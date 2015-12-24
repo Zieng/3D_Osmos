@@ -378,12 +378,15 @@ void Planet::update_position(const glm::mat4 &parentModelMatrix)
 
 void Planet::set_radius(double r)
 {
+    if( isActive == false)
+        return ;
+
     r = (r < 0) ? -r : r;
 
     double old_radius = radius;
     radius = ( r>MAX_RADIUS )?MAX_RADIUS:r;
 
-    if ( radius < MIN_RADIUS)  // too small , set active = false
+    if ( radius < MIN_RADIUS  )  // too small , set active = false
     {
         isActive = false;
         return ;
@@ -407,7 +410,7 @@ glm::mat4 Planet::get_model_matrix()
 
 void Planet::set_velocity(glm::vec3 speed)
 {
-    if(type == CenterStar)
+    if(type == CenterStar || isActive == false )
         return ;
 
     velocity = speed;
