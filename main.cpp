@@ -17,6 +17,7 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include "glm/gtx/string_cast.hpp"
+#include "glut/glut.h"
 
 #include <SOIL.h>
 #include <iostream>
@@ -27,12 +28,12 @@
 #define max(a, b) ((a) >= (b) ? (a) : (b))
 #define min(a, b) ((a) <  (b) ? (a) : (b))
 #define PI 3.14159265358979323846
-#define WORLD_MAX_X (20)
-#define WORLD_MIN_X (-20)
-#define WORLD_MAX_Y (20)
-#define WORLD_MIN_Y (-20)
-#define WORLD_MAX_Z (20)
-#define WORLD_MIN_Z (-20)
+#define WORLD_MAX_X (50)
+#define WORLD_MIN_X (-50)
+#define WORLD_MAX_Y (50)
+#define WORLD_MIN_Y (-50)
+#define WORLD_MAX_Z (50)
+#define WORLD_MIN_Z (-50)
 #define radius_to_volume(r) ( pow((r),3) )
 #define volume_to_radius(v) ( pow( (v), 1.0/3) )
 #define G_CONST 0.0067f       // universal gravitation const G in our game
@@ -74,29 +75,63 @@ bool paused = true;
 bool inChaos = false;
 
 // debug options
-bool drawBg = false;
+bool drawBg = true;
 bool noChild = true;
 bool applyField = true;
 
-// for background
-struct node
-{
-    glm::vec3 pos;   // z will be 0
-    glm::vec3 velocity;   // z will be 0
-    glm::vec3 color;
-};
-typedef struct  node particle;
-std::vector<particle> particleSet;
-int particleNum=200;
-std::vector<glm::vec3> posSet;
-std::vector<glm::vec3> colorSet;
-std::vector<glm::vec3> velocitySet;
-GLuint bg_vertexBuffer;
-GLuint bg_colorBuffer;
-
 vector<Planet * > plist;
-//set<Planet> plist;
-//list<Planet> plist;
+
+// background
+GLuint bgTexture;
+
+GLfloat bg_data[36][5]={
+        //  X           Y           Z           U      V
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,1.0F,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,0.0F,
+
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,0.0F,
+
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F,
+
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,1.0F,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F,
+
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,0.0F,
+
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,1.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,1.0F,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F
+};
+GLfloat g_vertex_buffer_data[36][3];
+GLfloat g_uv_buffer_data[36][2];
+
+GLuint bg_vertexBuffer,bg_uvBuffer;
 
 GLuint loadShaders(const char * vertex_file_path,const char * fragment_file_path)
 {
@@ -225,6 +260,7 @@ int initWindow()
     glfwSetScrollCallback(window,mousescroll);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
     glDepthFunc(GL_LESS);
 //    glEnable(GL_CULL_FACE);
 
@@ -385,21 +421,21 @@ void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCod
 
 void computeMatricesFromInputs(Planet & player)
 {
-    if(glfwGetKey(window, GLFW_KEY_P ) == GLFW_PRESS )
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     {
-        paused = ! paused;
+        paused = !paused;
     }
-    if(glfwGetKey(window,GLFW_KEY_B) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
     {
-        drawBg = ! drawBg;
+        drawBg = !drawBg;
     }
-    if(glfwGetKey(window,GLFW_KEY_N) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
     {
-        noChild = ! noChild;
+        noChild = !noChild;
     }
 
-    glm::vec3  player_position = player.get_position();
-    glm::vec3  velocity = player.get_velocity();
+    glm::vec3 player_position = player.get_position();
+    glm::vec3 velocity = player.get_velocity();
     glm::vec3 direction;
 
     static double lastTime = glfwGetTime();
@@ -407,41 +443,41 @@ void computeMatricesFromInputs(Planet & player)
     float deltaTime = float(currentTime - lastTime);
     lastTime = currentTime;
 
-    static double old_xpos,old_ypos;
+    static double old_xpos, old_ypos;
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
 
     // 通过鼠标来确定前进角度
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)==GLFW_PRESS)
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
         horizontalAngle += mouseSpeed * float(old_xpos - xpos);
-        verticalAngle   += mouseSpeed * float(old_ypos - ypos );
+        verticalAngle += mouseSpeed * float(old_ypos - ypos);
     }
 
     // 通过jkli按键来确定前进角度
-    if(glfwGetKey (window, GLFW_KEY_J) ==GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
     {
         horizontalAngle -= 0.01;
     }
 
-    if(glfwGetKey (window, GLFW_KEY_L) ==GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
     {
         horizontalAngle += 0.01;
     }
 
-    if(glfwGetKey (window, GLFW_KEY_I) ==GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
     {
         verticalAngle += 0.01;
     }
 
-    if(glfwGetKey (window, GLFW_KEY_K) ==GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
     {
         verticalAngle -= 0.01;
     }
 
-    old_xpos=xpos;
-    old_ypos=ypos;
+    old_xpos = xpos;
+    old_ypos = ypos;
 
     direction = glm::vec3(
             cos(verticalAngle) * sin(horizontalAngle),
@@ -450,94 +486,94 @@ void computeMatricesFromInputs(Planet & player)
     );
 
     glm::vec3 right = glm::vec3(
-            sin(horizontalAngle - 3.14f/2.0f),
+            sin(horizontalAngle - 3.14f / 2.0f),
             0,
-            cos(horizontalAngle - 3.14f/2.0f)
+            cos(horizontalAngle - 3.14f / 2.0f)
     );
 
 
-    glm::vec3 up = glm::cross( right, direction );
+    glm::vec3 up = glm::cross(right, direction);
 
-    if(glfwGetKey(window,GLFW_KEY_U)==GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
     {
-        up = glm::rotate(up,0.05f,direction);
+        up = glm::rotate(up, 0.05f, direction);
     }
-    if(glfwGetKey(window,GLFW_KEY_O)==GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
-        up = glm::rotate(up,-0.05f,direction);
+        up = glm::rotate(up, -0.05f, direction);
     }
 
     // Move forward
-    if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS )
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        if(inChaos)
+        if (inChaos)
         {
             velocity -= right * deltaTime * speed;
-            jet(player,direction,right,'a');
+            jet(player, direction, right, 'a');
         }
         else
         {
             velocity += direction * deltaTime * speed;
-            jet(player,direction,right,'w');
+            jet(player, direction, right, 'w');
         }
     }
     // Move backward
-    if (glfwGetKey( window, GLFW_KEY_S ) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        if(inChaos)
+        if (inChaos)
         {
             velocity += right * deltaTime * speed;
-            jet(player,direction,right,'d');
+            jet(player, direction, right, 'd');
         }
         else
         {
             velocity -= direction * deltaTime * speed;
-            jet(player,direction,right,'s');
+            jet(player, direction, right, 's');
         }
     }
     // Strafe right
-    if (glfwGetKey( window, GLFW_KEY_D ) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        if(inChaos)
+        if (inChaos)
         {
             velocity += direction * deltaTime * speed;
-            jet(player,direction,right,'w');
+            jet(player, direction, right, 'w');
         }
         else
         {
             velocity += right * deltaTime * speed;
-            jet(player,direction,right,'d');
+            jet(player, direction, right, 'd');
         }
     }
     // Strafe left
-    if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        if(inChaos)
+        if (inChaos)
         {
             velocity -= direction * deltaTime * speed;
-            jet(player,direction,right,'s');
+            jet(player, direction, right, 's');
         }
         else
         {
             velocity -= right * deltaTime * speed;
-            jet(player,direction,right,'a');
+            jet(player, direction, right, 'a');
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_SPACE ) == GLFW_PRESS && inChaos == false)
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && inChaos == false)
     {
-        if( velocity.length() >= 0.1f )     /// why glm::length(velocity) return glm::vec3????/todo
+        if (velocity.length() >= 0.1f)     /// why glm::length(velocity) return glm::vec3????/todo
         {
             velocity *= 0.9;
         }
         else
         {
-            velocity = glm::vec3(0,0,0);
+            velocity = glm::vec3(0, 0, 0);
         }
     }
 
-    if( glfwGetKey(window, GLFW_KEY_TAB ) == GLFW_PRESS )
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
     {
-        position = glm::vec3( 10, 10, 10 );
+        position = glm::vec3(10, 10, 10);
         up = glm::vec3(0.0, 1.0, 0.0);
         horizontalAngle = 3.92;
         verticalAngle = -0.79;
@@ -545,96 +581,56 @@ void computeMatricesFromInputs(Planet & player)
     }
 
     position = player_position - viewDistance * direction;
-//    cout<<"Now you are at:("<<position.x<<","<<position.y<<","<<position.z<<"),with verticalAngle="<<verticalAngle<<",horizontalAngle"<<horizontalAngle<<endl;
-
-    float FoV = initialFoV ;
-    ProjectionMatrix = glm::perspective(FoV, windowWidth/(float)windowHeight, 0.1f, 100.0f);
-    ViewMatrix       = glm::lookAt(
+    float FoV = initialFoV;
+    ProjectionMatrix = glm::perspective(FoV, windowWidth / (float) windowHeight, 0.1f, 100.0f);
+    ViewMatrix = glm::lookAt(
             position,           // Camera is here
-            position+direction, // and looks here : at the same position, plus "direction"
+            position + direction, // and looks here : at the same position, plus "direction"
             up                  // Head is up (set to 0,-1,0 to look upside-down)
     );
 
-    if( !paused )
+    if (!paused)
         player.set_velocity(velocity);
 }
 
 void draw_background()
 {
-    typedef vector<glm::vec3> group;
-    vector< group> lineSet;
-    double cursorPosX,cursorPosY;
+//    cout<<"drawing background....."<<endl;
+    glm::mat4 MVP=ProjectionMatrix * ViewMatrix;
 
-    glfwGetCursorPos(window, &cursorPosX, &cursorPosY);
-    cursorPosX= (2*cursorPosX - windowWidth) / windowWidth;
-    cursorPosY= (windowHeight - 2 * cursorPosY ) / windowHeight;
-    // cout<<cursorPosX<<","<<cursorPosY<<endl;
-    group cursorGroup;
-    glm::vec3 cursorPoint=glm::vec3(cursorPosX,cursorPosY,0);
+    glUniform1i(RenderID,1);
+    glActiveTexture(GL_TEXTURE0);   //selects which texture unit subsequent texture state calls will affect. The initial value is GL_TEXTURE0.
+    glBindTexture(GL_TEXTURE_2D, bgTexture);   //bind a named texture to a texturing target
 
-    cursorGroup.push_back(cursorPoint);
-    for(int i=0;i<particleNum;i++){
-        if(abs(posSet[i].x-cursorPosX) + abs(posSet[i].y-cursorPosY) <= 0.2)
-            cursorGroup.push_back(posSet[i]);
-    }
-    lineSet.push_back(cursorGroup);
-
-    for(int i=0;i<particleNum;i++){
-        // border collision check
-        if(std::abs(posSet[i].x+velocitySet[i].x)>1)
-            velocitySet[i].x=-velocitySet[i].x;
-        if(std::abs(posSet[i].y+velocitySet[i].y)>1)
-            velocitySet[i].y=-velocitySet[i].y;
-        posSet[i].x=posSet[i].x+velocitySet[i].x;
-        posSet[i].y=posSet[i].y+velocitySet[i].y;
-        // line them up
-        group g;
-        g.push_back(posSet[i]);
-        for(int j=i+1;j<particleNum;j++){
-            if(abs(posSet[i].x-posSet[j].x) + abs(posSet[i].y-posSet[j].y) <= 0.1)
-                g.push_back(posSet[j]);
-        }
-        lineSet.push_back(g);
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER,bg_vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, posSet.size() * sizeof(glm::vec3), &posSet[0], GL_STATIC_DRAW);
-
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(ProgramID);
-
-    glm::mat4 MVP=glm::mat4(1.0f);
-
+    glUniform1i(MyTextureSamplerID,0);    //  0-->GL_TEXTURE0
     glUniformMatrix4fv(MVPID,1,GL_FALSE,&MVP[0][0]);
-    glUniform1i(RenderID,2);
 
-    // vertex position
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER,bg_vertexBuffer);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+//    GLfloat g_vertex_buffer_data[36][3];
+//
+//    for(int i=0;i<36;i++)
+//    {
+//        for( int j= 0;j<3;j++)
+//           g_vertex_buffer_data[i][j] = bg_data[i][j];
+//    }
 
-    // vertex color
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER,bg_colorBuffer);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+    glEnableVertexAttribArray(0);      //vertex
+    glBindBuffer(GL_ARRAY_BUFFER, bg_vertexBuffer);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0, (void *) 0);
 
-    glDrawArrays(GL_POINTS, 0, (GLuint) posSet.size());
 
-    for(int i=0;i<lineSet.size();i++){
-        group g=lineSet[i];
+//    GLfloat g_uv_buffer_data[36][2];
+//    for(int i=0;i<36;i++)
+//    {
+//        g_uv_buffer_data[i][0] = bg_data[i][3];
+//        g_uv_buffer_data[i][1] = bg_data[i][4];
+//    }
+    glEnableVertexAttribArray(2); // VertexUV
+    glBindBuffer(GL_ARRAY_BUFFER, bg_uvBuffer);
 
-        GLuint lineBuffer;
-        glGenBuffers(1,&lineBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER,lineBuffer);
-        glBufferData(GL_ARRAY_BUFFER,g.size() * sizeof(glm::vec3),&g[0],GL_STATIC_DRAW);
-        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
-        glDrawArrays(GL_LINE_LOOP,0,(GLuint) g.size());
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,0,(void *) 0);
 
-        glDeleteBuffers(1,&lineBuffer);
-    }
 
-    glDisableVertexAttribArray(0);   // AttribArray 必须在调用glDrawArrays之后才能关闭
-    glDisableVertexAttribArray(1);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void draw(Planet & planet)
@@ -852,6 +848,99 @@ void inside_world(Planet & planet)
     }
 }
 
+void createObjects(int gameLevel)
+{
+
+    // create Planet
+    Planet::planet_init();
+
+    // create background
+    bgTexture = Planet::load_texture("./texture/osmos_bg1.png");
+
+    glGenBuffers(1,&bg_vertexBuffer);
+    glGenBuffers(1,&bg_uvBuffer);
+
+    for(int i=0;i<36;i++)
+    {
+        for( int j= 0;j<3;j++)
+            g_vertex_buffer_data[i][j] = bg_data[i][j];
+    }
+
+    for(int i=0;i<36;i++)
+    {
+        g_uv_buffer_data[i][0] = bg_data[i][3];
+        g_uv_buffer_data[i][1] = bg_data[i][4];
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, bg_vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER,36*3*sizeof(GLfloat),g_vertex_buffer_data,GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, bg_uvBuffer);
+    glBufferData(GL_ARRAY_BUFFER,36*2*sizeof(GLfloat),g_uv_buffer_data,GL_DYNAMIC_DRAW);
+    // create other planets
+
+//    for(int i=0;i<10;i++)
+//    {
+//        Planet * temp = new Planet(0.9,NormalStar);
+//
+//        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
+//
+//        temp->set_position(pos);
+//        plist.push_back(temp);
+//    }
+//    Planet * p1 = new Planet(2,CenterStar);
+//    plist.push_back(p1);
+    Planet * p2 = new Planet(0.9,ChaosStar);
+    p2->set_position(glm::vec3(5,3,0));
+    plist.push_back(p2);
+
+}
+
+void getFPS()
+{
+    static int frame = 0, time, timebase = 0;
+    static char buffer[256];
+
+    char mode[64];
+    if (true)
+        strcpy(mode, "display list");
+    else
+        // strcpy_s(mode, "naive");
+        strcpy(mode, "naive");
+
+    frame++;
+    time=glutGet(GLUT_ELAPSED_TIME);
+    time = glfwGetTime();
+    if (time - timebase > 1000)
+    {
+        sprintf(buffer,"FPS:%4.2f %s", frame*1000.0/(time-timebase), mode);
+        timebase = time;
+        frame = 0;
+    }
+
+    glutSetWindowTitle(buffer);
+    char *c;
+    glDisable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0,windowWidth,0,windowHeight,-1,1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glRasterPos3f(10,10,0);
+    cout<<"buffer="<<buffer<<endl;
+    for (c=buffer; *c != '\0'; c++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glEnable(GL_DEPTH_TEST);
+
+
+}
+
 int main(int argc, const char * argv[])
 {
 //    vector<Planet> plist;
@@ -880,57 +969,10 @@ int main(int argc, const char * argv[])
     glGenVertexArrays(1,&vertexArray);
     glBindVertexArray(vertexArray);
 
-    // create background
-    for(int i=0;i<particleNum;i++)
-    {
-        particle p;
-        p.pos=glm::vec3(  2*(rand()%windowWidth-windowWidth/2)/(float)windowWidth, 2*(rand()%windowHeight-windowHeight/2)/(float)windowHeight,  0  );
-
-        if(std::find(posSet.begin(),posSet.end(),p.pos)  !=  posSet.end()){
-            i--;
-        }
-        else{
-            p.velocity=glm::vec3(  (rand()%10-5)/(float)5000,  (rand()%10-5)/(float)5000,  0  );
-            p.color=glm::vec3( rand()%100/(float)100,rand()%100/(float)100,rand()%100/(float)100);
-            posSet.push_back(p.pos);
-            colorSet.push_back(p.color);
-            velocitySet.push_back(p.velocity);
-
-            particleSet.push_back(p);
-        }
-    }
-
-
-    glGenBuffers(1,&bg_vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER,bg_vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, posSet.size() * sizeof(glm::vec3), &posSet[0], GL_STATIC_DRAW);
-
-
-    glGenBuffers(1,&bg_colorBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER,bg_colorBuffer);
-    glBufferData(GL_ARRAY_BUFFER,colorSet.size() * sizeof(glm::vec3), &colorSet[0], GL_STATIC_DRAW);
-
-    // create Planet
-    Planet::planet_init();
+    createObjects(1);
+    // create player planet
     Planet player = Planet(1,PlayerStar);
     player.set_position(glm::vec3(10,0,0));
-
-//    Planet * p1 = new Planet(2,CenterStar);
-//    plist.push_back(p1);
-//    Planet * p2 = new Planet(0.9,ChaosStar);
-//    p2->set_position(glm::vec3(5,3,0));
-//    plist.push_back(p2);
-
-
-    for(int i=0;i<10;i++)
-    {
-        Planet * temp = new Planet(0.9,NormalStar);
-
-        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
-
-        temp->set_position(pos);
-        plist.push_back(temp);
-    }
 
     // For speed computation
     double lastTime = glfwGetTime();
@@ -938,7 +980,6 @@ int main(int argc, const char * argv[])
 
     do
     {
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(ProgramID);
 
@@ -1015,6 +1056,9 @@ int main(int argc, const char * argv[])
             draw_background();
         }
 
+        getFPS();
+
+
         glfwSwapBuffers(window);
         glfwPollEvents();
 
@@ -1029,12 +1073,11 @@ int main(int argc, const char * argv[])
         iter = plist.erase(iter);
     }
     Planet::planet_terminate();
+    glDeleteTextures(1,&bgTexture);
 
 
 
     glDeleteProgram(ProgramID);
-    glDeleteBuffers(1,&bg_colorBuffer);
-    glDeleteBuffers(1,&bg_vertexBuffer);
     glDeleteVertexArrays(1,&vertexArray);
     glfwTerminate();
 
