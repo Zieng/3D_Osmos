@@ -71,7 +71,7 @@ GLint modelMatrixID;
 GLint viewMatrixID;
 GLint lightPositionID;
 
-bool paused = true;
+bool paused = false;
 bool inChaos = false;
 
 // debug options
@@ -221,7 +221,7 @@ void mousescroll(GLFWwindow* window, double xoffset, double yoffset)
     }
     else
     {
-        if(viewDistance >= 5)
+        if(viewDistance >= 2 )
             viewDistance -= 0.5;
         cout<<"You change viewDistance to "<<viewDistance<<endl;
     }
@@ -240,7 +240,7 @@ int initWindow()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window=glfwCreateWindow(1280,720, "My SolarSystem!", NULL, NULL);
+    window=glfwCreateWindow(1280,800, "My SolarSystem!", NULL, NULL);
     if (window==NULL)
     {
         std::cout<<"create window failed!"<<std::endl;
@@ -260,110 +260,13 @@ int initWindow()
     glfwSetScrollCallback(window,mousescroll);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
     glDepthFunc(GL_LESS);
-//    glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
 
     // to see the orbital clearly , need change the point size
     glEnable(GL_PROGRAM_POINT_SIZE);
 
     return 0;
-}
-
-void input_handle(glm::vec3 position, glm::vec3 &direction, glm::vec3 &velocity)
-{
-    bool keyPress = false;
-
-    static double lastTime = glfwGetTime();
-    double currentTime = glfwGetTime();
-    float deltaTime = float(currentTime - lastTime);
-    lastTime = currentTime;
-
-    static double old_xpos,old_ypos;
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-
-
-    glm::vec3 rightHand = glm::cross(direction,up);
-    // rotate
-    if(glfwGetKey(window,GLFW_KEY_U)==GLFW_PRESS)
-    {
-        up = glm::rotate(up,0.05f,direction);
-        keyPress = true;
-    }
-    if(glfwGetKey(window,GLFW_KEY_O)==GLFW_PRESS)
-    {
-        up = glm::rotate(up,-0.05f,direction);
-        keyPress = true;
-    }
-
-    // change direction
-    if(glfwGetKey(window,GLFW_KEY_I)==GLFW_PRESS)
-    {
-        direction = glm::rotate(direction,0.03f,rightHand);
-        keyPress = true;
-    }
-    if(glfwGetKey(window,GLFW_KEY_K)==GLFW_PRESS)
-    {
-        direction = glm::rotate(direction,-0.03f,rightHand);
-        keyPress = true;
-    }
-    if(glfwGetKey(window,GLFW_KEY_J)==GLFW_PRESS)
-    {
-        direction = glm::rotate(direction,-0.03f,up);
-        keyPress = true;
-    }
-    if(glfwGetKey(window,GLFW_KEY_L)==GLFW_PRESS)
-    {
-        direction = glm::rotate(direction,0.03f,up);
-        keyPress = true;
-    }
-
-    // change the velocity or center
-    if(glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS)
-    {
-        velocity += direction * deltaTime;
-        position += direction * deltaTime;
-        keyPress = true;
-    }
-    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS)
-    {
-        velocity -= rightHand * deltaTime;
-        position -= rightHand * deltaTime;
-        keyPress = true;
-    }
-    if(glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS)
-    {
-        velocity -= direction * deltaTime;
-        position -= direction * deltaTime;
-        keyPress = true;
-    }
-    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS)
-    {
-        velocity += rightHand * deltaTime;
-        position += rightHand * deltaTime;
-        keyPress = true;
-    }
-
-    if(glfwGetKey(window,GLFW_KEY_SPACE)==GLFW_PRESS)
-    {
-        paused = ! paused;
-    }
-    // compute the matrix
-    ViewMatrix = glm::lookAt(position-direction, position + direction, up);
-    ProjectionMatrix = glm::perspective(45.f,windowWidth/(float)windowHeight,0.1f,100.0f);
-
-
-    // debug printf info
-    if(keyPress)
-    {
-        cout<<"--------------------------------"<<endl;
-        cout << "You are at (" << position.x << " , " << position.y << " , " << position.z << ")" << endl;
-        cout<<"\theading to ("<<direction.x<<" , "<<direction.y<<" , "<<direction.z<<")"<<endl;
-        cout<<"\t\twith velocity ("<<velocity.x<<" , "<<velocity.y<<" , "<<velocity.z<<")"<<endl;
-        cout<<"\tup is ("<<up.x<<" , "<<up.y<<" , "<<up.z<<" )"<<endl;
-    }
-
 }
 
 void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCode )
@@ -582,7 +485,7 @@ void computeMatricesFromInputs(Planet & player)
 
     position = player_position - viewDistance * direction;
     float FoV = initialFoV;
-    ProjectionMatrix = glm::perspective(FoV, windowWidth / (float) windowHeight, 0.1f, 100.0f);
+    ProjectionMatrix = glm::perspective(FoV, windowWidth / (float) windowHeight, 0.1f, 256.0f);
     ViewMatrix = glm::lookAt(
             position,           // Camera is here
             position + direction, // and looks here : at the same position, plus "direction"
@@ -605,25 +508,11 @@ void draw_background()
     glUniform1i(MyTextureSamplerID,0);    //  0-->GL_TEXTURE0
     glUniformMatrix4fv(MVPID,1,GL_FALSE,&MVP[0][0]);
 
-//    GLfloat g_vertex_buffer_data[36][3];
-//
-//    for(int i=0;i<36;i++)
-//    {
-//        for( int j= 0;j<3;j++)
-//           g_vertex_buffer_data[i][j] = bg_data[i][j];
-//    }
 
     glEnableVertexAttribArray(0);      //vertex
     glBindBuffer(GL_ARRAY_BUFFER, bg_vertexBuffer);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0, (void *) 0);
 
-
-//    GLfloat g_uv_buffer_data[36][2];
-//    for(int i=0;i<36;i++)
-//    {
-//        g_uv_buffer_data[i][0] = bg_data[i][3];
-//        g_uv_buffer_data[i][1] = bg_data[i][4];
-//    }
     glEnableVertexAttribArray(2); // VertexUV
     glBindBuffer(GL_ARRAY_BUFFER, bg_uvBuffer);
 
@@ -665,7 +554,7 @@ void draw(Planet & planet)
     glVertexAttribPointer(3,3,GL_FLOAT,GL_FALSE,0,(void *)0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,planet.elementBuffer);
-    glDrawElements(GL_TRIANGLES, (GLuint)planet.indices.size(), GL_UNSIGNED_SHORT, (void *)0);
+    glDrawElements(GL_TRIANGLES, (GLuint)planet.share_indices.size(), GL_UNSIGNED_SHORT, (void *)0);
 
     glDisableVertexAttribArray(0);   // AttribArray 必须在调用glDrawArrays之后才能关闭
     glDisableVertexAttribArray(2);
@@ -801,7 +690,7 @@ void inside_world(Planet & planet)
     glm::vec3 v = planet.get_velocity();
     glm::vec3 t = planet.get_position();
     double r = planet.get_radius();
-    float offset = 0.0001f;   // to avoid planet stuck at the boarder
+    float offset = 0.0000000000000001f;   // to avoid planet stuck at the boarder
     bool changed = false;
 
     if( t.x < WORLD_MIN_X + r )
@@ -876,20 +765,22 @@ void createObjects(int gameLevel)
     glBufferData(GL_ARRAY_BUFFER,36*3*sizeof(GLfloat),g_vertex_buffer_data,GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, bg_uvBuffer);
     glBufferData(GL_ARRAY_BUFFER,36*2*sizeof(GLfloat),g_uv_buffer_data,GL_DYNAMIC_DRAW);
+
+
     // create other planets
 
-//    for(int i=0;i<10;i++)
-//    {
-//        Planet * temp = new Planet(0.9,NormalStar);
-//
-//        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
-//
-//        temp->set_position(pos);
-//        plist.push_back(temp);
-//    }
+    for(int i=0;i<10;i++)
+    {
+        Planet * temp = new Planet(0.9,NormalStar);
+
+        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
+
+        temp->set_position(pos);
+        plist.push_back(temp);
+    }
 //    Planet * p1 = new Planet(2,CenterStar);
 //    plist.push_back(p1);
-    Planet * p2 = new Planet(0.9,ChaosStar);
+    Planet * p2 = new Planet(0.9,NormalStar);
     p2->set_position(glm::vec3(5,3,0));
     plist.push_back(p2);
 
@@ -928,7 +819,7 @@ void getFPS()
     glPushMatrix();
     glLoadIdentity();
     glRasterPos3f(10,10,0);
-    cout<<"buffer="<<buffer<<endl;
+//    cout<<"buffer="<<buffer<<endl;
     for (c=buffer; *c != '\0'; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
     }
@@ -937,7 +828,6 @@ void getFPS()
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glEnable(GL_DEPTH_TEST);
-
 
 }
 

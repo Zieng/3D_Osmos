@@ -25,7 +25,7 @@
 #include <SOIL.h>
 
 #define MAX_RADIUS (10)
-#define MIN_RADIUS (0)
+#define MIN_RADIUS (0.1f)
 
 using namespace std;
 
@@ -59,28 +59,6 @@ public:
     Planet(double r,PLANET_TYPE t);
     ~Planet();
 
-//    void set_uniform(GLuint MVPID,
-//                     GLuint RenderID,
-//                     GLuint MyTextureSamplereID,
-//                     GLuint modelMatrixID,
-//                     GLuint viewMatrixID,
-//                     GLuint lightPositionID);
-
-//    bool load_OBJ(const char * objPath,
-//                  std::vector<glm::vec3> & out_vertex,
-//                  std::vector<glm::vec2> & out_uv,
-//                  std::vector<glm::vec3> & out_normal);
-
-//    void VBO_indexer(vector<glm::vec3> & in_vertices,
-//                     vector<glm::vec2> & in_uvs,
-//                     vector<glm::vec3> & in_normals,
-//                     vector<glm::vec3> & out_vertices,
-//                     vector<glm::vec2> & out_uvs,
-//                     vector<glm::vec3> & out_normals,
-//                     vector<unsigned short> & indices);
-
-//    GLuint load_texture(const char * image_path);
-
     void set_velocity(glm::vec3 speed);
     glm::vec3 get_velocity();
     void set_radius(double r);
@@ -103,11 +81,6 @@ public:
     // object data
     GLuint texture;
 
-    vector<unsigned short> indices;
-    vector<glm::vec3> indexed_vertices;
-    vector<glm::vec2> indexed_uvs;
-    vector<glm::vec3> indexed_normals;
-
     // p    arameters of the planet
     glm::vec3 orientation;
     glm::vec3 up;
@@ -120,15 +93,8 @@ public:
     GLuint vertexBuffer,uvBuffer,normalBuffer,elementBuffer;
 
     glm::mat4 self_ModelMatrix;
+    glm::mat4 self_ScaleMatrix;
     glm::mat4 parent_ModelMatrix;
-
-    // uniform variable for shader
-    GLuint MVPID;
-    GLuint RenderID;
-    GLuint MyTextureSamplerID;
-    GLuint modelMatrixID;
-    GLuint viewMatrixID;
-    GLuint lightPositionID;
 
     float lastTime;  // to help calculate update
 
@@ -139,7 +105,7 @@ public:
     static bool planetInitOK;
     static bool planetTerminate;
 
-    static GLuint share_uvBuffer,share_normalBuffer,share_elementBuffer;
+    static GLuint share_uvBuffer,share_normalBuffer,share_elementBuffer, share_vertexBuffer;
     static GLuint playerStarTexture  ,
             centerStarTexture   ,
             normalStarTexture   ,
@@ -188,10 +154,7 @@ public:
         return Texture;
     }
 
-    static bool load_OBJ(const char * objPath,
-                  std::vector<glm::vec3> & out_vertex,
-                  std::vector<glm::vec2> & out_uv,
-                  std::vector<glm::vec3> & out_normal)
+    static  bool load_OBJ(const char *objPath, std::vector<glm::vec3> &out_vertex, std::vector<glm::vec2> &out_uv, std::vector<glm::vec3> &out_normal)
     {
         vector<unsigned int > vertexIndices,uvIndices,normalIndices;
         vector<glm::vec3> temp_vertices;
@@ -280,15 +243,12 @@ public:
         }
 
         return true;
+
     }
 
-    static void VBO_indexer(vector<glm::vec3> & in_vertices,
-                     vector<glm::vec2> & in_uvs,
-                     vector<glm::vec3> & in_normals,
-                     vector<glm::vec3> & out_vertices,
-                     vector<glm::vec2> & out_uvs,
-                     vector<glm::vec3> & out_normals,
-                     vector<unsigned short> & indices)
+    static bool VBO_indexer(vector<glm::vec3> &in_vertices, vector<glm::vec2> &in_uvs, vector<glm::vec3> &in_normals,
+                             vector<glm::vec3> &out_vertices, vector<glm::vec2> &out_uvs, vector<glm::vec3> &out_normals,
+                             vector<unsigned short> &indices)
     {
         map<PackedVertex,unsigned short> indexedVertices;
 
@@ -317,15 +277,13 @@ public:
         }
     }
 
-
-
     static bool planet_init()
     {
-        playerStarTexture = load_texture("./texture/player.png");
+        playerStarTexture = load_texture("./texture/player_high.png");
 
         normalStarTexture = load_texture("./texture/normal.png");
 
-        centerStarTexture = load_texture("./texture/sun.png");
+        centerStarTexture = load_texture("./texture/sun_high.png");
 
         invisibleStarTexture = load_texture("./texture/invisible.png");
 
@@ -357,10 +315,14 @@ public:
 
         VBO_indexer(vertices, uvs, normals, share_vertices, share_uvs, share_normals, share_indices);
 
-        for(int i=0;i<share_vertices.size();i++)
-        {
-            share_vertices[i] /= 2;  // the original object has radius = 2, so need divide by 2
-        }
+//        for(int i=0;i<share_vertices.size();i++)
+//        {
+//            share_vertices[i] /= 2;  // the original object has radius = 2, so need divide by 2
+//        }
+
+        glGenBuffers(1,&share_vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER,share_vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, share_vertices.size() * sizeof(glm::vec3), &share_vertices[0], GL_STATIC_DRAW);
 
         glGenBuffers(1,&share_uvBuffer);
         glBindBuffer(GL_ARRAY_BUFFER,share_uvBuffer);
@@ -369,7 +331,6 @@ public:
         glGenBuffers(1,&share_normalBuffer);
         glBindBuffer(GL_ARRAY_BUFFER,share_normalBuffer);
         glBufferData(GL_ARRAY_BUFFER,share_normals.size()* sizeof(glm::vec3),&share_normals[0],GL_STATIC_DRAW);
-
 
         glGenBuffers(1,&share_elementBuffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,share_elementBuffer);
@@ -387,6 +348,7 @@ public:
 
     static void planet_terminate()
     {
+        glDeleteBuffers(1,&share_vertexBuffer);
         glDeleteBuffers(1,&share_uvBuffer);
         glDeleteBuffers(1,&share_normalBuffer);
         glDeleteBuffers(1,&share_elementBuffer);
