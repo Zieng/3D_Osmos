@@ -64,7 +64,6 @@ public:
     void set_radius(double r);
     void set_position(glm::vec3 p);
     glm::vec3 get_position();
-    void set_position(glm::mat4 new_model_matrix);
     void update_position();
     void update_position(const glm::mat4 &parentModelMatrix);
     glm::mat4 get_model_matrix();

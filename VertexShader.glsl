@@ -19,7 +19,7 @@ out vec3 lightDirection_cameraspace;
 
 void main()
 {
-    gl_PointSize = 4;
+    gl_PointSize = 20;
 
     if(choose!=0)
     {

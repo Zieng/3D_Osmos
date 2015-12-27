@@ -75,8 +75,8 @@ bool paused = false;
 bool inChaos = false;
 
 // debug options
-bool drawBg = true;
-bool noChild = true;
+bool drawBg = false;
+bool noChild = false ;
 bool applyField = true;
 
 vector<Planet * > plist;
@@ -84,55 +84,149 @@ vector<Planet * > plist;
 // background
 GLuint bgTexture;
 
-GLfloat bg_data[36][5]={
-        //  X           Y           Z           U      V
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,1.0F,
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,0.0F,
+//GLfloat bg_data[36][5]={
+//        //  X           Y           Z           U      V
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,0.0F,
+//
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,0.0F,
+//
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F,
+//
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F,
+//
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,0.0F,
+//
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,1.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,1.0F,
+//        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
+//        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F
+//};
 
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,0.0F,
-
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F,
-
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,1.0F,
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F,
-
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,    0.0F,1.0F,
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,    1.0F,0.0F,
-
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,    0.0F,1.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,    1.0F,1.0F,
-        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
-        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F
+GLfloat static_bg_vertices[36][3]={
+        //  X           Y           Z
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MAX_Z,
+        WORLD_MIN_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MIN_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MIN_Z,
+        WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,
+        WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z
 };
 
-GLfloat g_vertex_buffer_data[36][3];
-GLfloat g_uv_buffer_data[36][2];
+GLfloat static_bg_uvs[36][2]={
+        // U      V
+        0.0F,1.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,0.0F,
+        0.0F,1.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,0.0F,
+        0.0F,1.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,0.0F,
+        0.0F,1.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,0.0F,
+        0.0F,1.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,0.0F,
+        0.0F,1.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,1.0F,
+        0.0F,0.0F,
+        1.0F,0.0F
+};
 
 GLuint bg_vertexBuffer,bg_uvBuffer;
+bool    dynamicBG = false;
+
+struct node
+{
+    glm::vec3 pos;
+    glm::vec3 velocity;
+    glm::vec3 color;
+};
+typedef struct  node particle;
+std::vector<particle> particleSet;
+
+std::vector<glm::vec3> posSet;
+std::vector<glm::vec3> colorSet;
+std::vector<glm::vec3> velocitySet;
+int particleNum = 100;
+GLuint particleBuffer;
+
 
 GLuint loadShaders(const char * vertex_file_path,const char * fragment_file_path)
 {
@@ -217,14 +311,11 @@ void mousescroll(GLFWwindow* window, double xoffset, double yoffset)
     {
         if(viewDistance <= 45)
             viewDistance += 0.5;
-
-        cout<<"You change viewDistance to "<<viewDistance<<endl;
     }
     else
     {
         if(viewDistance >= 2 )
             viewDistance -= 0.5;
-        cout<<"You change viewDistance to "<<viewDistance<<endl;
     }
 }
 
@@ -293,24 +384,26 @@ void jet(Planet & player,glm::vec3 & direction, glm::vec3 & right ,int buttonCod
     float R = player.get_radius();
     Planet * childPlanet = new Planet(r,NormalStar);
 
+    r+=0.0001f;
     if(buttonCode == 'a')
     {
-        v = right * v;
+        v = right * glm::length(v);
         pos += right * (r + R);
     }
     else if( buttonCode == 'd')
     {
-        v = - right * v;
+        v = - right * glm::length(v);
         pos -= right * (r + R);
     }
     else if( buttonCode == 'w')
     {
-        pos += direction * (r +R);
+        v = - direction * glm::length(v);
+        pos -= direction * (r + R);
     }
     else if( buttonCode == 's')
     {
-        v = - v;
-        pos -= direction * (r + R);
+        v = direction * glm::length(v);
+        pos += direction * (r +R);
     }
     else
     {
@@ -521,6 +614,70 @@ void draw_background()
 
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+
+void draw_particle()
+{
+    typedef vector<glm::vec3> group;
+    vector< group> lineSet;
+
+    for(int i=0;i<particleNum;i++)
+    {
+        // border collision check
+        float temp = posSet[i].x+velocitySet[i].x;
+        if( temp >WORLD_MAX_X || temp < WORLD_MIN_X )
+            velocitySet[i].x=-velocitySet[i].x;
+        temp = posSet[i].y+velocitySet[i].y;
+        if(temp>WORLD_MAX_Y  || temp < WORLD_MIN_Y)
+            velocitySet[i].y=-velocitySet[i].y;
+        temp = posSet[i].z+velocitySet[i].z;
+        if( temp >WORLD_MAX_Z  || temp < WORLD_MIN_Z )
+            velocitySet[i].z=-velocitySet[i].z;
+
+        posSet[i].x += velocitySet[i].x;
+        posSet[i].y += velocitySet[i].y;
+        posSet[i].z += velocitySet[i].z;
+        // prepare line them up
+        group g;
+        g.push_back(posSet[i]);
+        for(int j=i+1;j<particleNum;j++){
+            if(abs(posSet[i].x-posSet[j].x) + abs(posSet[i].y-posSet[j].y ) + abs(posSet[i].z-posSet[j].z) <= 20 )
+                g.push_back(posSet[j]);
+        }
+        lineSet.push_back(g);
+    }
+
+    glm::mat4 MVP=ProjectionMatrix * ViewMatrix ;
+
+    glBindBuffer(GL_ARRAY_BUFFER,particleBuffer);
+    glBufferData(GL_ARRAY_BUFFER, posSet.size() * sizeof(glm::vec3), &posSet[0], GL_STATIC_DRAW);
+
+    glUniformMatrix4fv(MVPID,1,GL_FALSE,&MVP[0][0]);
+    glUniform1i(RenderID,0);
+
+
+    glEnableVertexAttribArray(0);
+    // vertex position
+    glBindBuffer(GL_ARRAY_BUFFER,particleBuffer);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+
+    glDrawArrays(GL_POINTS, 0, (GLuint) posSet.size());
+
+    for(int i=0;i<lineSet.size();i++)
+    {
+        group g=lineSet[i];
+
+        GLuint lineBuffer;
+        glGenBuffers(1,&lineBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER,lineBuffer);
+        glBufferData(GL_ARRAY_BUFFER,g.size() * sizeof(glm::vec3),&g[0],GL_STATIC_DRAW);
+        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void *)0);
+        glDrawArrays(GL_LINE_LOOP,0,(GLuint) g.size());
+
+        glDeleteBuffers(1,&lineBuffer);
+    }
+
 }
 
 void draw(Planet & planet)
@@ -750,23 +907,44 @@ void createObjects(int gameLevel)
     glGenBuffers(1,&bg_vertexBuffer);
     glGenBuffers(1,&bg_uvBuffer);
 
-    for(int i=0;i<36;i++)
+    if( !dynamicBG )
     {
-        for( int j= 0;j<3;j++)
-            g_vertex_buffer_data[i][j] = bg_data[i][j];
+        glBindBuffer(GL_ARRAY_BUFFER, bg_vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER,36*3*sizeof(GLfloat), static_bg_vertices, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, bg_uvBuffer);
+        glBufferData(GL_ARRAY_BUFFER,36*2*sizeof(GLfloat), static_bg_uvs, GL_DYNAMIC_DRAW);
+    }
+    else
+    {
+        //todo dynamic background
     }
 
-    for(int i=0;i<36;i++)
+    // init paritcles
+    for(int i=0;i<particleNum;i++)
     {
-        g_uv_buffer_data[i][0] = bg_data[i][3];
-        g_uv_buffer_data[i][1] = bg_data[i][4];
+        particle p;
+        p.pos=glm::vec3(  (rand()%(WORLD_MAX_X - WORLD_MIN_X )+ WORLD_MIN_X), (rand()%(WORLD_MAX_Y - WORLD_MIN_Y ) + WORLD_MIN_Y),  (rand()%(WORLD_MAX_Z - WORLD_MIN_Z) + WORLD_MIN_Z) );
+        // p.pos=glm::vec3(i,i,i);
+        // p.pos=glm::vec3(rand()%worldScale,rand()%worldScale,rand()%worldScale);
+        // cout<<p.pos.x<<","<<p.pos.y<<","<<p.pos.z<<","<<endl;
+        if(std::find(posSet.begin(), posSet.end(), p.pos) != posSet.end()){
+            i--;
+        }
+        else{
+            p.velocity=glm::vec3(  (rand()%10-5)/(float)50,  (rand()%10-5)/(float)50,  (rand()%10-5)/(float)50  );
+            // cout<<"velocity:"<<p.velocity.x<<","<<p.velocity.y<<","<<p.velocity.z<<endl;
+            // p.color=glm::vec3( rand()%100/(float)100,rand()%100/(float)100,rand()%100/(float)100);
+            p.color=glm::vec3(1,1,1);
+            posSet.push_back(p.pos);
+            colorSet.push_back(p.color);
+            velocitySet.push_back(p.velocity);
+
+            particleSet.push_back(p);
+        }
     }
-
-    glBindBuffer(GL_ARRAY_BUFFER, bg_vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER,36*3*sizeof(GLfloat),g_vertex_buffer_data,GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, bg_uvBuffer);
-    glBufferData(GL_ARRAY_BUFFER,36*2*sizeof(GLfloat),g_uv_buffer_data,GL_DYNAMIC_DRAW);
-
+    glGenBuffers(1,&particleBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER,particleBuffer);
+    glBufferData(GL_ARRAY_BUFFER, posSet.size() * sizeof(glm::vec3), &posSet[0], GL_STATIC_DRAW);
 
     // create other planets
 
@@ -779,7 +957,7 @@ void createObjects(int gameLevel)
 //        temp->set_position(pos);
 //        plist.push_back(temp);
 //    }
-//    Planet * p1 = new Planet(2,CenterStar);
+//    Planet * p1 = new Planet(5,CenterStar);
 //    plist.push_back(p1);
     Planet * p2 = new Planet(0.9,NormalStar);
     p2->set_position(glm::vec3(5,3,0));
@@ -902,6 +1080,8 @@ int main(int argc, const char * argv[])
         {
             draw_background();
         }
+
+        draw_particle();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

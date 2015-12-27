@@ -10,49 +10,40 @@ Planet::Planet(double r, PLANET_TYPE t)
     if( planetInitOK == false)
     {
         cout<<"Please init the class planet first!"<<endl;
+        planet_init();
     }
 
     // choose the right texture according to the planet type
     switch (t)
     {
         case PlayerStar:
-//            texturePath = "./texture/player.png";
             texture = playerStarTexture;
             break;
         case CenterStar:
-//            texturePath = "./texture/sun.png";
             texture = centerStarTexture;
             break;
         case InvisibleStar:
-//            texturePath = "./texture/invisible.png";
             texture = invisibleStarTexture;
             break;
         case SwallowStar:
-//            texturePath = "./texture/swallow.png";
             texture = swallowStarTexture;
             break;
         case RepulsiveStar:
-//            texturePath = "./texture/repulsive.png";
             texture = repulsiveStarTexture;
             break;
         case SwiftStar:
-//            texturePath = "./texture/swift.png";
             texture = swiftStarTexture;
             break;
         case NutriStar:
-//            texturePath = "./texture/nutri.png";
             texture = nutriStarTexture;
             break;
         case DarkStar:
-//            texturePath = "./texture/dark.png";
             texture = darkStarTexture;
             break;
         case BreatheStar:
-//            texturePath = "./texture/breathe.png";
             texture = breatheStarTexture;
             break;
         case NormalStar:
-//            texturePath = "./texture/metal.png";
             texture = normalStarTexture;
             break;
         case ChaosStar:
@@ -60,7 +51,6 @@ Planet::Planet(double r, PLANET_TYPE t)
             break;
         default:
             cout<<endl<<endl<<endl<<endl<<"Undefined!!!!"<<endl<<endl<<endl;
-//            texturePath = "./texture/undefined.png";
             texture = undefinedTexture;
             break;
     }
@@ -103,17 +93,6 @@ void Planet::set_position(glm::vec3 p)
     c4 = glm::vec4(worldLocation.x, worldLocation.y, worldLocation.z, 1);
 
     self_ModelMatrix = glm::mat4(c1,c2,c3,c4);
-
-}
-
-void Planet::set_position(glm::mat4 new_model_matrix)
-{
-    self_ModelMatrix = new_model_matrix;
-
-    //calclute the center from modle_matrix
-
-    glm::vec4 temp = self_ModelMatrix * glm::vec4(1.f,1.f,1.f,1.f);
-    worldLocation = glm::vec3(temp.x , temp.y , temp.z);
 
 }
 
