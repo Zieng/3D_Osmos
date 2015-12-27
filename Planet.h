@@ -313,12 +313,16 @@ public:
             return false;
         }
 
+        share_vertices.clear();
+        share_normals.clear();
+        share_indices.clear();
+        share_uvs.clear();
         VBO_indexer(vertices, uvs, normals, share_vertices, share_uvs, share_normals, share_indices);
 
-//        for(int i=0;i<share_vertices.size();i++)
-//        {
-//            share_vertices[i] /= 2;  // the original object has radius = 2, so need divide by 2
-//        }
+        for(int i=0;i<share_vertices.size();i++)
+        {
+            share_vertices[i] /= 2;  // the original object has radius = 2, so need divide by 2
+        }
 
         glGenBuffers(1,&share_vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER,share_vertexBuffer);
