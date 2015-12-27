@@ -128,6 +128,7 @@ GLfloat bg_data[36][5]={
         WORLD_MIN_X,WORLD_MAX_Y,WORLD_MAX_Z,    0.0F,0.0F,
         WORLD_MAX_X,WORLD_MAX_Y,WORLD_MAX_Z,    1.0F,0.0F
 };
+
 GLfloat g_vertex_buffer_data[36][3];
 GLfloat g_uv_buffer_data[36][2];
 
@@ -240,7 +241,7 @@ int initWindow()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window=glfwCreateWindow(1280,800, "My SolarSystem!", NULL, NULL);
+    window=glfwCreateWindow(1280,800, "Osmos!", NULL, NULL);
     if (window==NULL)
     {
         std::cout<<"create window failed!"<<std::endl;
@@ -769,15 +770,15 @@ void createObjects(int gameLevel)
 
     // create other planets
 
-    for(int i=0;i<10;i++)
-    {
-        Planet * temp = new Planet(0.9,NormalStar);
-
-        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
-
-        temp->set_position(pos);
-        plist.push_back(temp);
-    }
+//    for(int i=0;i<10;i++)
+//    {
+//        Planet * temp = new Planet(0.9,NormalStar);
+//
+//        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
+//
+//        temp->set_position(pos);
+//        plist.push_back(temp);
+//    }
 //    Planet * p1 = new Planet(2,CenterStar);
 //    plist.push_back(p1);
     Planet * p2 = new Planet(0.9,NormalStar);
@@ -786,50 +787,6 @@ void createObjects(int gameLevel)
 
 }
 
-void getFPS()
-{
-    static int frame = 0, time, timebase = 0;
-    static char buffer[256];
-
-    char mode[64];
-    if (true)
-        strcpy(mode, "display list");
-    else
-        // strcpy_s(mode, "naive");
-        strcpy(mode, "naive");
-
-    frame++;
-    time=glutGet(GLUT_ELAPSED_TIME);
-    time = glfwGetTime();
-    if (time - timebase > 1000)
-    {
-        sprintf(buffer,"FPS:%4.2f %s", frame*1000.0/(time-timebase), mode);
-        timebase = time;
-        frame = 0;
-    }
-
-    glutSetWindowTitle(buffer);
-    char *c;
-    glDisable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0,windowWidth,0,windowHeight,-1,1);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glRasterPos3f(10,10,0);
-//    cout<<"buffer="<<buffer<<endl;
-    for (c=buffer; *c != '\0'; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-    }
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glEnable(GL_DEPTH_TEST);
-
-}
 
 int main(int argc, const char * argv[])
 {
@@ -945,9 +902,6 @@ int main(int argc, const char * argv[])
         {
             draw_background();
         }
-
-        getFPS();
-
 
         glfwSwapBuffers(window);
         glfwPollEvents();
