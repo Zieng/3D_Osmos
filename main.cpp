@@ -75,7 +75,7 @@ bool paused = false;
 bool inChaos = false;
 
 // debug options
-bool drawBg = false;
+bool drawBg = true;
 bool noChild = false ;
 bool applyField = true;
 
@@ -948,18 +948,26 @@ void createObjects(int gameLevel)
 
     // create other planets
 
-//    for(int i=0;i<10;i++)
-//    {
-//        Planet * temp = new Planet(0.9,NormalStar);
-//
-//        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
-//
-//        temp->set_position(pos);
-//        plist.push_back(temp);
-//    }
-//    Planet * p1 = new Planet(5,CenterStar);
-//    plist.push_back(p1);
-    Planet * p2 = new Planet(0.9,NormalStar);
+    for(int i=0;i<10;i++)
+    {
+        Planet * temp;
+        if(i<2)
+         temp= new Planet(0.9,NormalStar);
+        else if(i<5)
+            temp = new Planet(1,BreatheStar);
+        else if(i<8)
+            temp = new Planet(0.9,SwallowStar);
+        else
+            temp = new Planet(0.9,ChaosStar);
+
+        glm::vec3 pos = glm::vec3(   random()%WORLD_MAX_X,  random()%WORLD_MAX_Y,   random()%WORLD_MAX_Z   );
+
+        temp->set_position(pos);
+        plist.push_back(temp);
+    }
+    Planet * p1 = new Planet(2,CenterStar);
+    plist.push_back(p1);
+    Planet * p2 = new Planet(0.9,RepulsiveStar);
     p2->set_position(glm::vec3(5,3,0));
     plist.push_back(p2);
 

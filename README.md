@@ -1,5 +1,5 @@
 # 3D_Osmos
-##Development status
+A 3D version Osmos demo program.
 ###Star Type
 > CenterStar: Fixed,Big,gravity
 
@@ -19,17 +19,15 @@
 
 > BreatheStar:the radius is changing like breathe
 
-###Phiysics Rule
-#####Absorption
-> OK
+###Control
+use keyboard 'aswd' to move, and space to brake.
+use 'ijkl' or mouse to change the view direction
+scroll mouse to change the view distance
+'p' is for pause
+'esc' is for exit
+###screenshots
+
+![Screen Shot 2016-01-14 at 22.05.52.png](./sceenshots/Screen Shot 2016-01-14 at 22.05.52.png)
 
 
-#####Attraction and Repulsive force
-$$F=(GMm)/r^2$$
-> OK
-
-
-#####Jet to accelerate
-meet problems when put object of Class Planet into a vector.
-finally solve the problem by adding pointers not object so avoiding copy constructor.
-> uncomplete
+![Screen Shot 2016-01-14 at 22.07.19.png](./sceenshots/Screen Shot 2016-01-14 at 22.07.19.png)

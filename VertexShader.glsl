@@ -33,7 +33,7 @@ void main()
 
             vec3 lightPosition_cameraspace = ( viewMatrix * vec4(lightPosition_worldspace,1)).xyz;
 
-            //光线到物体的反向向量?
+            //光线到物体的反向向量
             lightDirection_cameraspace = lightPosition_cameraspace + eyeDirection_cameraspace;
             normal_cameraspace = ( viewMatrix * modelMatrix * vec4(vertexNormal_modelspace,0)).xyz;
         }
